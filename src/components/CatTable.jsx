@@ -1,5 +1,6 @@
 import './CatTable.css';
 
+
 function CatTable({ cats }) {
   if (cats.length === 0) {
     return <p>Kissoja ei ole</p>;
@@ -19,7 +20,7 @@ function CatTable({ cats }) {
       <tbody>
         {cats.map(cat => {
           return (
-            <tr key={cat.id}>
+            <tr key={cat.nimi + cat.lelu}>
               <td>
                 <img src={cat.kuva} />
               </td>

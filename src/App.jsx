@@ -1,10 +1,15 @@
-import CatTable from './components/CatTable';
-import image1 from './assets/miri1.jpg'
+import { useState } from 'react';
+
+import image1 from './assets/miri1.jpg';
 import image2 from './assets/miri4.jpg';
 import image3 from './assets/miri11.jpg';
 
+import CatTable from './components/CatTable';
+import CatForm from './components/CatForm';
+import './App.css'
+
 // kovakoodattu esimerkkidata
-const cats = [
+const mockData = [
   {
     id: 1,
     nimi: 'Miri',
@@ -35,9 +40,18 @@ const cats = [
 ];
 
 function App() {
+  const [cats, setCats] = useState(mockData);
+
+  const handleCatUpdate = (newCatInfo) => {
+    setCats([...cats, newCatInfo]);
+  };
+
   return (
+    <div className='app'>
       <CatTable cats={cats} />
+      <CatForm handleCatUpdate={handleCatUpdate} />
+    </div>
   );
 }
 
-export default App
+export default App;

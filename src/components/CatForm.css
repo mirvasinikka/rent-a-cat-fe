@@ -1,0 +1,36 @@
+input[type='text'] {
+  width: 80%;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+input[type='file'] {
+  width: 80%;
+  padding: 10px 15px;
+}
+
+input[type='button'] {
+  width: 40%;
+  background-color: #17129f;
+  color: white;
+  padding: 12px 20px;
+  margin: 20px;
+  border: none;
+  border-radius: 4px;
+}
+
+input[type='button']:hover {
+  background-color: #17129f79;
+}
+
+.block {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+label {
+  width: 50%;
+}
