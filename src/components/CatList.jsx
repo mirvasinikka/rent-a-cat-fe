@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { AppContext } from '../App';
 import InfoIcon from '@mui/icons-material/Info';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
@@ -8,7 +8,6 @@ import { Link } from 'react-router-dom';
 
 function CatList() {
   const { cats, setCats } = useContext(AppContext);
-  const [clicked, setClicked] = useState();
 
   if (cats.length === 0) {
     return <p>Kissoja ei ole</p>;
@@ -34,7 +33,7 @@ function CatList() {
                   <Typography variant="h6">{cat.sijainti}</Typography>
                 </CardContent>
                 <CardActions>
-                  <Button component={Link} to={'/info/' + cat.id}>
+                  <Button component={Link} to={'/info/' + (index + 1)}>
                     <InfoIcon color="secondary" />
                   </Button>
                   <IconButton onClick={() => handleLikes(cat.id)}>{cat.liked ? <FavoriteIcon /> : <FavoriteBorderOutlinedIcon />}</IconButton>
