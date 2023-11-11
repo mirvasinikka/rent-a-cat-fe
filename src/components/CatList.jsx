@@ -27,7 +27,7 @@ function CatList() {
                 </CardContent>
                 <CardActions>
                   <Button component={Link} to={'/info/' + cat.id }>
-                    <InfoIcon />
+                    <InfoIcon color='secondary'/>
                   </Button>
                 </CardActions>
               </Card>

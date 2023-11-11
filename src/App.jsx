@@ -1,5 +1,7 @@
 import CatForm from './components/CatForm';
 import CatAppBar from './components/CatAppBar';
+import { blue, indigo, pink } from '@mui/material/colors';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { createContext, useState } from 'react';
 
@@ -8,6 +10,8 @@ import image2 from './assets/miri4.jpg';
 import image3 from './assets/miri11.jpg';
 import CatList from './components/CatList';
 import CatInfo from './components/CatInfo';
+import Error from './components/Error';
+
 
 const mockData = [
   {
@@ -66,12 +70,23 @@ const mockData = [
   },
 ];
 
+const theme = createTheme({
+  palette: {
+    primary: { main: pink[200], contrastText: '#FFFFFF' },
+    secondary: { main: blue[400], contrastText: '#FFFFFF' },
+    text: { primary: indigo[900], secondary: indigo[400] },
+  },
+  typography: {
+    fontFamily: "'Sometype Mono', 'monospace'"
+  },
+});
+
 export const AppContext = createContext(null);
 
 const router = createBrowserRouter([
   {
     element: <CatAppBar />,
-    errorElement: null,
+    errorElement: <Error />,
     children: [
       {
         path: '/',
@@ -93,9 +108,11 @@ function App() {
   const [cats, setCats] = useState(mockData);
 
   return (
-    <AppContext.Provider value={{cats, setCats}}>
-      <RouterProvider router={router} />
-    </AppContext.Provider>
+    <ThemeProvider theme={theme}>
+      <AppContext.Provider value={{ cats, setCats }}>
+        <RouterProvider router={router} />
+      </AppContext.Provider>
+    </ThemeProvider>
   );
 }
 
