@@ -6,7 +6,8 @@ import image3 from './assets/miri11.jpg';
 
 import CatTable from './components/CatTable';
 import CatForm from './components/CatForm';
-import './App.css'
+import CatAppBar from './components/CatAppBar';
+// import './App.css'
 
 // kovakoodattu esimerkkidata
 const mockData = [
@@ -47,10 +48,11 @@ function App() {
   };
 
   return (
-    <div className='app'>
+    <>
+      <CatAppBar />
       <CatTable cats={cats} />
       <CatForm handleCatUpdate={handleCatUpdate} />
-    </div>
+    </>
   );
 }
 
