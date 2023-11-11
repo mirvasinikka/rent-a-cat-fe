@@ -1,4 +1,3 @@
-import CatTable from './components/CatTable';
 import CatForm from './components/CatForm';
 import CatAppBar from './components/CatAppBar';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
