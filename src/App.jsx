@@ -7,6 +7,7 @@ import { createContext, useState } from 'react';
 import image1 from './assets/miri1.jpg';
 import image2 from './assets/miri4.jpg';
 import image3 from './assets/miri11.jpg';
+import CatList from './components/CatList';
 
 const mockData = [
   {
@@ -36,6 +37,33 @@ const mockData = [
     lelu: 'hiiri',
     kuva: image3,
   },
+  {
+    id: 4,
+    nimi: 'Miri',
+    laji: 'Scottish long hair',
+    sijainti: 'Helsinki',
+    omistaja: 'Mirva',
+    lelu: 'pallo',
+    kuva: image1,
+  },
+  {
+    id: 5,
+    nimi: 'Musti',
+    laji: 'Persian',
+    sijainti: 'Espoo',
+    omistaja: 'Pekka',
+    lelu: 'naru',
+    kuva: image2,
+  },
+  {
+    id: 6,
+    nimi: 'Molla',
+    laji: 'Thai Siamese',
+    sijainti: 'Oulu',
+    omistaja: 'Vilma',
+    lelu: 'hiiri',
+    kuva: image3,
+  },
 ];
 
 export const AppContext = createContext(null);
@@ -47,7 +75,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <CatTable />,
+        element: <CatList />,
       },
       {
         path: 'add',
