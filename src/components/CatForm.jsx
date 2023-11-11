@@ -2,12 +2,15 @@ import { useEffect, useState } from 'react';
 import AttachmentIcon from '@mui/icons-material/Attachment';
 import CreateIcon from '@mui/icons-material/Create';
 import { Box, Paper, TextField, Button, Typography, InputLabel, Input } from '@mui/material';
-
-// import './CatForm.css';
+import { useNavigate } from 'react-router-dom';
 
 const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '' };
 
-function CatForm({ handleCatUpdate }) {
+
+
+function CatForm() {
+  const navigate = useNavigate();
+
   const [message, setMessage] = useState('');
   const [cat, setCat] = useState(initalCatState);
 
@@ -27,22 +30,27 @@ function CatForm({ handleCatUpdate }) {
     setCat({ ...cat, kuva: URL.createObjectURL(e.target.files[0]) });
   };
 
+  console.log(cat);
+
   const handleSubmit = () => {
     if (cat.nimi === '' || cat.laji === '' || cat.sijainti === '' || cat.omistaja === '' || cat.lelu === '' || cat.kuva === '') {
       setMessage('Kaikissa kentissä täytyy olla arvot, myös kuva!');
     } else {
-      handleCatUpdate(cat);
+      // handleCatUpdate(cat);
       setCat(initalCatState);
       setMessage('Tiedot tallennettin!');
+      navigate('/', {
+        state: {
+          cat,
+        },
+      });
     }
   };
 
   return (
     <Paper>
       <Box component="form" autoComplete="off" sx={{ '& .MuiTextField-root': { marginBottom: 2 }, margin: 5 }}>
-       
-       
-        <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden/>
+        <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden />
 
         <InputLabel htmlFor="kuva">
           <Typography sx={{ display: 'inline' }}>Kuva</Typography>
