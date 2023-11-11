@@ -8,6 +8,7 @@ import image1 from './assets/miri1.jpg';
 import image2 from './assets/miri4.jpg';
 import image3 from './assets/miri11.jpg';
 import CatList from './components/CatList';
+import CatInfo from './components/CatInfo';
 
 const mockData = [
   {
@@ -80,6 +81,10 @@ const router = createBrowserRouter([
       {
         path: 'add',
         element: <CatForm />,
+      },
+      {
+        path: 'info/:id',
+        element: <CatInfo />,
       },
     ],
   },
