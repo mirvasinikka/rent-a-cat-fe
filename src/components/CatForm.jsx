@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import AttachmentIcon from '@mui/icons-material/Attachment';
 import CreateIcon from '@mui/icons-material/Create';
 import { Box, Paper, TextField, Button, Typography, InputLabel, Input } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../App';
 
 const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '' };
 
-
-
 function CatForm() {
   const navigate = useNavigate();
-
+  const {cats, setCats} = useContext(AppContext);
   const [message, setMessage] = useState('');
   const [cat, setCat] = useState(initalCatState);
 
@@ -30,20 +29,18 @@ function CatForm() {
     setCat({ ...cat, kuva: URL.createObjectURL(e.target.files[0]) });
   };
 
-  console.log(cat);
+  const handleCatUpdate = (cat) => {
+    setCats([...cats, cat]);
+  };
 
   const handleSubmit = () => {
     if (cat.nimi === '' || cat.laji === '' || cat.sijainti === '' || cat.omistaja === '' || cat.lelu === '' || cat.kuva === '') {
       setMessage('Kaikissa kentissä täytyy olla arvot, myös kuva!');
     } else {
-      // handleCatUpdate(cat);
+      handleCatUpdate(cat);
       setCat(initalCatState);
       setMessage('Tiedot tallennettin!');
-      navigate('/', {
-        state: {
-          cat,
-        },
-      });
+      navigate('/');
     }
   };
 
