@@ -2,12 +2,17 @@ import { useContext } from 'react';
 import { AppContext } from '../App';
 import InfoIcon from '@mui/icons-material/Info';
 import { Box, Button, Card, CardActions, CardContent, CardMedia, Grid, Typography } from '@mui/material';
+import { Link } from 'react-router-dom';
 
 function CatList() {
   const { cats } = useContext(AppContext);
 
+  if (cats.length === 0) {
+    return <p>Kissoja ei ole</p>;
+  }
+
   return (
-    <Box sx={{marginTop: 3}}>
+    <Box sx={{ marginTop: 3 }}>
       <Grid container spacing={{ xs: 2, md: 5 }} columns={{ xs: 4, sm: 8, md: 18 }}>
         {cats.map((cat, index) => {
           return (
@@ -21,7 +26,7 @@ function CatList() {
                   <Typography variant="h6">{cat.sijainti}</Typography>
                 </CardContent>
                 <CardActions>
-                  <Button>
+                  <Button component={Link} to={'/info/' + cat.id }>
                     <InfoIcon />
                   </Button>
                 </CardActions>
