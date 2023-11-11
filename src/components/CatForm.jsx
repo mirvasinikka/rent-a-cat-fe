@@ -5,7 +5,7 @@ import { Box, Paper, TextField, Button, Typography, InputLabel, Input } from '@m
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../App';
 
-const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '' };
+const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '', kuvaNimi: '' };
 
 function CatForm() {
   const navigate = useNavigate();
@@ -26,7 +26,9 @@ function CatForm() {
   };
 
   const muutaCatKuva = (e) => {
-    setCat({ ...cat, kuva: URL.createObjectURL(e.target.files[0]) });
+    if (e.target.files) {
+    setCat({ ...cat, kuva: URL.createObjectURL(e.target.files[0]), kuvaNimi: e.target.files[0].name });
+    }
   };
 
   const handleCatUpdate = (cat) => {
@@ -49,11 +51,12 @@ function CatForm() {
       <Box component="form" autoComplete="off" sx={{ '& .MuiTextField-root': { marginBottom: 2 }, margin: 5 }}>
         <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden />
 
-        <InputLabel htmlFor="kuva">
+        <InputLabel htmlFor="kuva" sx={{marginBottom: 5}}>
           <Typography sx={{ display: 'inline' }}>Kuva</Typography>
           <Button component="span" onClick={muutaCatKuva}>
             <AttachmentIcon />
           </Button>
+          {cat.kuvaNimi}
         </InputLabel>
 
         <TextField label="Kissan nimi" name="nimi" value={cat.nimi} onChange={muutaCat} required fullWidth autoFocus />
