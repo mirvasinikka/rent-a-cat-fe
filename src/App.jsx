@@ -11,6 +11,7 @@ import image3 from './assets/miri11.jpg';
 import CatList from './components/CatList';
 import CatInfo from './components/CatInfo';
 import Error from './components/Error';
+import LikedCats from './components/LikedCats';
 
 
 const mockData = [
@@ -105,6 +106,10 @@ const router = createBrowserRouter([
       {
         path: 'info/:id',
         element: <CatInfo />,
+      },
+      {
+        path: 'likes',
+        element: <LikedCats />,
       },
     ],
   },

@@ -15,9 +15,9 @@ function CatInfo() {
   if (!cats[catId]) {
     return (
       <Box>
-        <p>Cat dose not exsist</p>
+        <p>Cat doesn't exist, please try another cat thank you!</p>
         <Button component={Link} onClick={() => navigate('/')}>
-          Back to cats
+          Back to the cats
         </Button>
       </Box>
     );
@@ -41,7 +41,7 @@ function CatInfo() {
       <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
         <Typography variant="h6">Lempi lelu: </Typography> <Typography variant="h6"> {cats[catId].lelu}</Typography>
       </Box>
-      <Button variant='secondary' component={Link} onClick={() => navigate('/')}>
+      <Button variant="secondary" component={Link} onClick={() => navigate('/')}>
         Back to cats
       </Button>
     </Box>
