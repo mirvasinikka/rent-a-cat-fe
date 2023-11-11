@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import AttachmentIcon from '@mui/icons-material/Attachment';
-import CreateIcon from '@mui/icons-material/Create';
+import AddIcon from '@mui/icons-material/Add';
 import { Box, Paper, TextField, Button, Typography, InputLabel, Input } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../App';
@@ -47,14 +47,14 @@ function CatForm() {
   };
 
   return (
-    <Paper>
+    <>
       <Box component="form" autoComplete="off" sx={{ '& .MuiTextField-root': { marginBottom: 2 }, margin: 5 }}>
         <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden />
 
-        <InputLabel htmlFor="kuva" sx={{marginBottom: 5}}>
+        <InputLabel htmlFor="kuva" sx={{ marginBottom: 5 }}>
           <Typography sx={{ display: 'inline' }}>Kuva</Typography>
           <Button component="span" onClick={muutaCatKuva}>
-            <AttachmentIcon />
+            <AttachmentIcon fontSize="large" />
           </Button>
           {cat.kuvaNimi}
         </InputLabel>
@@ -66,13 +66,13 @@ function CatForm() {
         <TextField label="Lempilelu" name="lelu" value={cat.lelu} onChange={muutaCat} required fullWidth />
 
         <Box sx={{ textAlign: 'center' }}>
-          <Button onClick={handleSubmit} variant="contained" sx={{ marginRight: 3 }} startIcon={<CreateIcon />}>
+          <Button size="large" onClick={handleSubmit} variant="contained" sx={{ marginRight: 3, marginTop: 3 }} startIcon={<AddIcon />}>
             Lisää
           </Button>
           <p>{message}</p>
         </Box>
       </Box>
-    </Paper>
+    </>
   );
 }
 
