@@ -22,6 +22,7 @@ const mockData = [
     omistaja: 'Mirva',
     lelu: 'pallo',
     kuva: image1,
+    liked: true,
   },
   {
     id: 2,
@@ -31,6 +32,7 @@ const mockData = [
     omistaja: 'Pekka',
     lelu: 'naru',
     kuva: image2,
+    liked: false,
   },
   {
     id: 3,
@@ -40,6 +42,7 @@ const mockData = [
     omistaja: 'Vilma',
     lelu: 'hiiri',
     kuva: image3,
+    liked: false,
   },
   {
     id: 4,
@@ -49,6 +52,7 @@ const mockData = [
     omistaja: 'Mirva',
     lelu: 'pallo',
     kuva: image1,
+    liked: false,
   },
   {
     id: 5,
@@ -58,6 +62,7 @@ const mockData = [
     omistaja: 'Pekka',
     lelu: 'naru',
     kuva: image2,
+    liked: false,
   },
   {
     id: 6,
@@ -67,6 +72,7 @@ const mockData = [
     omistaja: 'Vilma',
     lelu: 'hiiri',
     kuva: image3,
+    liked: true,
   },
 ];
 
