@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import AttachmentIcon from '@mui/icons-material/Attachment';
+import CreateIcon from '@mui/icons-material/Create';
+import { Box, Paper, TextField, Button, Typography, InputLabel, Input } from '@mui/material';
 
-import './CatForm.css';
+// import './CatForm.css';
 
 const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '' };
 
@@ -35,36 +38,33 @@ function CatForm({ handleCatUpdate }) {
   };
 
   return (
-    <form>
-      <div className="block">
-        <label>Kissan kuva</label>
-        <input type="file" onChange={muutaCatKuva} id="kuva" name="kuva" />
-      </div>
-      <div className="block">
-        <label>Kissan nimi</label>
-        <input type="text" onChange={muutaCat} name="nimi" value={cat.nimi} />
-      </div>
-      <div className="block">
-        <label>Laji</label>
-        <input type="text" onChange={muutaCat} name="laji" value={cat.laji} />
-      </div>
-      <div className="block">
-        <label>Sijainti</label>
-        <input type="text" onChange={muutaCat} name="sijainti" value={cat.sijainti} />
-      </div>
-      <div className="block">
-        <label>Omistaja</label>
-        <input type="text" onChange={muutaCat} name="omistaja" value={cat.omistaja} />
-      </div>
-      <div className="block">
-        <label>Lempilelu</label>
-        <input type="text" onChange={muutaCat} name="lelu" value={cat.lelu} />
-      </div>
-      <div>
-        <input type="button" value="Lisää" onClick={handleSubmit} />
-        <p>{message}</p>
-      </div>
-    </form>
+    <Paper>
+      <Box component="form" autoComplete="off" sx={{ '& .MuiTextField-root': { marginBottom: 2 }, margin: 5 }}>
+       
+       
+        <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden/>
+
+        <InputLabel htmlFor="kuva">
+          <Typography sx={{ display: 'inline' }}>Kuva</Typography>
+          <Button component="span" onClick={muutaCatKuva}>
+            <AttachmentIcon />
+          </Button>
+        </InputLabel>
+
+        <TextField label="Kissan nimi" name="nimi" value={cat.nimi} onChange={muutaCat} required fullWidth autoFocus />
+        <TextField label="Laji" name="laji" value={cat.laji} onChange={muutaCat} required fullWidth />
+        <TextField label="Sijainti" name="sijainti" value={cat.sijainti} onChange={muutaCat} required fullWidth />
+        <TextField label="Omistaja" name="omistaja" value={cat.omistaja} onChange={muutaCat} required fullWidth />
+        <TextField label="Lempilelu" name="lelu" value={cat.lelu} onChange={muutaCat} required fullWidth />
+
+        <Box sx={{ textAlign: 'center' }}>
+          <Button onClick={handleSubmit} variant="contained" sx={{ marginRight: 3 }} startIcon={<CreateIcon />}>
+            Lisää
+          </Button>
+          <p>{message}</p>
+        </Box>
+      </Box>
+    </Paper>
   );
 }
 
