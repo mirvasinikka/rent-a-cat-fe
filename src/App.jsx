@@ -12,6 +12,8 @@ import CatList from './components/CatList';
 import CatInfo from './components/CatInfo';
 import Error from './components/Error';
 import LikedCats from './components/LikedCats';
+import Login from './components/Login';
+import Register from './components/Register';
 
 
 const mockData = [
@@ -77,6 +79,7 @@ const mockData = [
   },
 ];
 
+
 const theme = createTheme({
   palette: {
     primary: { main: pink[200], contrastText: '#FFFFFF' },
@@ -110,6 +113,14 @@ const router = createBrowserRouter([
       {
         path: 'likes',
         element: <LikedCats />,
+      },
+      {
+        path: '/login',
+        element: <Login />,
+      },
+      {
+        path: '/register',
+        element: <Register />,
       },
     ],
   },
