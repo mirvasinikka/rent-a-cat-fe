@@ -1,21 +1,53 @@
-import { AppContext } from '../App';
-import { useContext } from 'react';
-import { useParams } from 'react-router';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import { Typography, Box, Link, Button } from '@mui/material';
 
 function CatInfo() {
-  const { cats } = useContext(AppContext);
+  const [cat, setCat] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
-
   let { id } = useParams();
-  const catId = id - 1;
 
-  if (!cats[catId]) {
+  useEffect(() => {
+    const fetchCat = async () => {
+      try {
+        const response = await fetch(`/api/cats/${id}`);
+        if (!response.ok) {
+          throw new Error('Cat not found');
+        }
+        const data = await response.json();
+        setCat(data);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCat();
+  }, [id]);
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
     return (
       <Box>
-        <p>Cat doesn't exist, please try another cat thank you!</p>
+        <p>Error: {error}</p>
+        <Button component={Link} onClick={() => navigate('/')}>
+          Back to the cats
+        </Button>
+      </Box>
+    );
+  }
+
+  if (!cat) {
+    return (
+      <Box>
+        <p>Cat doesn't exist, please try another cat. Thank you!</p>
         <Button component={Link} onClick={() => navigate('/')}>
           Back to the cats
         </Button>
@@ -25,21 +57,21 @@ function CatInfo() {
 
   return (
     <Box sx={{ width: '100%', height: '100%', img: { margin: 2, width: 300, height: 450 } }}>
-      <img src={cats[catId].kuva} />
+      <img src={cat.kuva} />
       <Box sx={{ display: 'flex', gap: 1, marginTop: 2 }}>
-        <Typography variant="h6">Nimi: </Typography> <Typography variant="h6"> {cats[catId].nimi}</Typography>
+        <Typography variant="h6">Nimi: </Typography> <Typography variant="h6"> {cat.nimi}</Typography>
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
-        <Typography variant="h6">Kaupunki: </Typography> <Typography variant="h6"> {cats[catId].sijainti}</Typography>
+        <Typography variant="h6">Kaupunki: </Typography> <Typography variant="h6"> {cat.sijainti}</Typography>
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
-        <Typography variant="h6">Laji: </Typography> <Typography variant="h6"> {cats[catId].laji}</Typography>
+        <Typography variant="h6">Laji: </Typography> <Typography variant="h6"> {cat.laji}</Typography>
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
-        <Typography variant="h6">Omistaja: </Typography> <Typography variant="h6"> {cats[catId].omistaja}</Typography>
+        <Typography variant="h6">Omistaja: </Typography> <Typography variant="h6"> {cat.omistaja}</Typography>
       </Box>
       <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
-        <Typography variant="h6">Lempi lelu: </Typography> <Typography variant="h6"> {cats[catId].lelu}</Typography>
+        <Typography variant="h6">Lempi lelu: </Typography> <Typography variant="h6"> {cat.lelu}</Typography>
       </Box>
       <Button variant="secondary" component={Link} onClick={() => navigate('/')}>
         Back to cats
