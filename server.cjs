@@ -11,9 +11,95 @@ const port = process.env.PORT || 3001;
 app.use(bodyParser.json());
 app.use(cors());
 app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use('/assets', express.static('public/assets'));
 
 const usersDB = new sqlite3.Database('./users.db');
 const catsDB = new sqlite3.Database('./cats.db');
+
+const mockData = [
+  {
+    id: 1,
+    nimi: 'Miri',
+    laji: 'Scottish long hair',
+    sijainti: 'Helsinki',
+    omistaja: 'Mirva',
+    lelu: 'pallo',
+    kuva: '/assets/miri1.jpg',
+    liked: true,
+  },
+  {
+    id: 2,
+    nimi: 'Musti',
+    laji: 'Persian',
+    sijainti: 'Espoo',
+    omistaja: 'Pekka',
+    lelu: 'naru',
+    kuva: '/assets/miri4.jpg',
+    liked: false,
+  },
+  {
+    id: 3,
+    nimi: 'Molla',
+    laji: 'Thai Siamese',
+    sijainti: 'Oulu',
+    omistaja: 'Vilma',
+    lelu: 'hiiri',
+    kuva: '/assets/miri11.jpg',
+    liked: false,
+  },
+  {
+    id: 4,
+    nimi: 'Miri',
+    laji: 'Scottish long hair',
+    sijainti: 'Helsinki',
+    omistaja: 'Mirva',
+    lelu: 'pallo',
+    kuva: '/assets/miri1.jpg',
+    liked: false,
+  },
+  {
+    id: 5,
+    nimi: 'Musti',
+    laji: 'Persian',
+    sijainti: 'Espoo',
+    omistaja: 'Pekka',
+    lelu: 'naru',
+    kuva: '/assets/miri4.jpg',
+    liked: false,
+  },
+  {
+    id: 6,
+    nimi: 'Molla',
+    laji: 'Thai Siamese',
+    sijainti: 'Oulu',
+    omistaja: 'Vilma',
+    lelu: 'hiiri',
+    kuva: '/assets/miri11.jpg',
+    liked: true,
+  },
+];
+
+function insertMockData() {
+  catsDB.get('SELECT COUNT(*) AS count FROM cats', (err, row) => {
+    if (err) {
+      console.error('Error checking cats count:', err.message);
+    } else if (row.count === 0) {
+      const insertStmt = catsDB.prepare('INSERT INTO cats (nimi, laji, sijainti, omistaja, lelu, kuva) VALUES (?, ?, ?, ?, ?, ?)');
+
+      mockData.forEach((cat) => {
+        insertStmt.run([cat.nimi, cat.laji, cat.sijainti, cat.omistaja, cat.lelu, cat.kuva], (err) => {
+          if (err) {
+            console.error('Error inserting mock data:', err.message);
+          }
+        });
+      });
+
+      insertStmt.finalize();
+    } else {
+      console.log('Mock data already exists');
+    }
+  });
+}
 
 // Creating users
 usersDB.run(
@@ -52,6 +138,7 @@ catsDB.run(
       console.error('Error creating cats table: ', err.message);
     } else {
       console.log('Cats table created or already exists');
+      insertMockData();
     }
   },
 );
@@ -148,8 +235,6 @@ app.delete('/api/cats/:id', (req, res) => {
     res.json({ message: 'Cat deleted successfully' });
   });
 });
-
-
 
 app.listen(port, () => {
   console.log(`server is runnig at http://localhost:${port}`);
