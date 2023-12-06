@@ -2,7 +2,7 @@ import CatForm from './components/CatForm';
 import CatAppBar from './components/CatAppBar';
 import { blue, indigo, pink } from '@mui/material/colors';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import { createContext, useState } from 'react';
 
 import image1 from './assets/miri1.jpg';
@@ -14,7 +14,9 @@ import Error from './components/Error';
 import LikedCats from './components/LikedCats';
 import Login from './components/Login';
 import Register from './components/Register';
-
+import RequireAuth from './components/RequireAuth';
+import { AuthProvider } from './components/AuthContext';
+import { CssBaseline } from '@mui/material';
 
 const mockData = [
   {
@@ -79,7 +81,6 @@ const mockData = [
   },
 ];
 
-
 const theme = createTheme({
   palette: {
     primary: { main: pink[200], contrastText: '#FFFFFF' },
@@ -87,11 +88,19 @@ const theme = createTheme({
     text: { primary: indigo[900], secondary: indigo[400] },
   },
   typography: {
-    fontFamily: "'Sometype Mono', 'monospace'"
+    fontFamily: "'Sometype Mono', 'monospace'",
   },
 });
 
 export const AppContext = createContext(null);
+
+const ProtectedLayout = () => {
+  return (
+    <RequireAuth>
+      <Outlet />
+    </RequireAuth>
+  );
+};
 
 const router = createBrowserRouter([
   {
@@ -99,8 +108,13 @@ const router = createBrowserRouter([
     errorElement: <Error />,
     children: [
       {
-        path: '/',
-        element: <CatList />,
+        element: <ProtectedLayout />,
+        children: [
+          {
+            path: '/',
+            element: <CatList />,
+          },
+        ],
       },
       {
         path: 'add',
@@ -131,8 +145,11 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
+      <CssBaseline />
       <AppContext.Provider value={{ cats, setCats }}>
-        <RouterProvider router={router} />
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </AppContext.Provider>
     </ThemeProvider>
   );

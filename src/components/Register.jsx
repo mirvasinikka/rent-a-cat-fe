@@ -1,15 +1,37 @@
 import React, { useState } from 'react';
-import { TextField, Button, Container } from '@mui/material';
+import { TextField, Button, Container, Alert } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
+  const [alert, setAlert] = useState({ message: '', severity: null });
+  const navigate = useNavigate();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Handle registration logic here
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password, email, confirmPassword }),
+      });
+
+      if (response.ok) {
+        setAlert({ message: 'Registeration successfull', severity: 'success' });
+        setTimeout(() => navigate('/'), 3000);
+      } else {
+        const data = await response.json();
+        setAlert({ message: 'Registeration failed: ' + data.error, severity: 'error' });
+      }
+    } catch (error) {
+      console.error('Registeration failed: ', error.alert);
+      setAlert({ message: 'Registeration failed', severity: 'error' });
+    }
   };
 
   return (
@@ -57,6 +79,11 @@ function Register() {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
+        {alert.message && (
+          <Alert severity={alert.severity} sx={{ marginBottom: 2, marginTop: 2 }}>
+            {alert.message}
+          </Alert>
+        )}
         <Button type="submit" fullWidth variant="contained" color="primary">
           Register
         </Button>
