@@ -1,13 +1,15 @@
-import { AppBar, Box, Button, Container, Toolbar, TextField, InputAdornment, IconButton } from '@mui/material';
+import { AppBar, Box, Button, Toolbar } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PetsIcon from '@mui/icons-material/Pets';
-import SearchIcon from '@mui/icons-material/Search';
 import { Link, Outlet } from 'react-router-dom';
-import React, { useState } from 'react';
+import { useAuth } from './AuthContext';
+import React from 'react';
 
 function CatAppBar() {
+  const { isAuthenticated, logout } = useAuth();
+
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -39,9 +41,15 @@ function CatAppBar() {
           <Button size="large" component={Link} to="add" color="inherit">
             <AddCircleOutlineOutlinedIcon fontSize="large" sx={{ marginRight: 1 }} /> Add a cat
           </Button>
-          <Button size="large" component={Link} to="/login" color="inherit">
-            Login
-          </Button>
+          {isAuthenticated ? (
+            <Button size="large" onClick={logout} color="inherit">
+              Logout
+            </Button>
+          ) : (
+            <Button size="large" component={Link} to="/login" color="inherit">
+              Login
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
       <Outlet />

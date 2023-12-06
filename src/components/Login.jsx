@@ -1,16 +1,39 @@
-import { TextField, Button, Container, Typography } from '@mui/material';
+import { TextField, Button, Container, Alert } from '@mui/material';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [message, setMesage] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // connect to BackEnd
-  };
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
 
+      if (response.ok) {
+        console.log('login was successfull');
+        login();
+        navigate('/');
+      } else {
+        const data = await response.json();
+        setMesage('Login failed:' + data.error);
+        console.log('Login failed:', data.error);
+      }
+    } catch (error) {
+      console.error('Login failed: ', error);
+    }
+  };
 
   return (
     <Container component="main" maxWidth="xs">
@@ -37,6 +60,7 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        {message && <Alert severity="error">{message}</Alert>}
         <Button type="submit" fullWidth variant="contained" color="primary" sx={{ marginTop: 2 }}>
           Sign In
         </Button>
