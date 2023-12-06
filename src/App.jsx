@@ -3,11 +3,7 @@ import CatAppBar from './components/CatAppBar';
 import { blue, indigo, pink } from '@mui/material/colors';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
-import { createContext, useState } from 'react';
 
-import image1 from './assets/miri1.jpg';
-import image2 from './assets/miri4.jpg';
-import image3 from './assets/miri11.jpg';
 import CatList from './components/CatList';
 import CatInfo from './components/CatInfo';
 import Error from './components/Error';
@@ -17,69 +13,6 @@ import Register from './components/Register';
 import RequireAuth from './components/RequireAuth';
 import { AuthProvider } from './components/AuthContext';
 import { CssBaseline } from '@mui/material';
-
-const mockData = [
-  {
-    id: 1,
-    nimi: 'Miri',
-    laji: 'Scottish long hair',
-    sijainti: 'Helsinki',
-    omistaja: 'Mirva',
-    lelu: 'pallo',
-    kuva: image1,
-    liked: true,
-  },
-  {
-    id: 2,
-    nimi: 'Musti',
-    laji: 'Persian',
-    sijainti: 'Espoo',
-    omistaja: 'Pekka',
-    lelu: 'naru',
-    kuva: image2,
-    liked: false,
-  },
-  {
-    id: 3,
-    nimi: 'Molla',
-    laji: 'Thai Siamese',
-    sijainti: 'Oulu',
-    omistaja: 'Vilma',
-    lelu: 'hiiri',
-    kuva: image3,
-    liked: false,
-  },
-  {
-    id: 4,
-    nimi: 'Miri',
-    laji: 'Scottish long hair',
-    sijainti: 'Helsinki',
-    omistaja: 'Mirva',
-    lelu: 'pallo',
-    kuva: image1,
-    liked: false,
-  },
-  {
-    id: 5,
-    nimi: 'Musti',
-    laji: 'Persian',
-    sijainti: 'Espoo',
-    omistaja: 'Pekka',
-    lelu: 'naru',
-    kuva: image2,
-    liked: false,
-  },
-  {
-    id: 6,
-    nimi: 'Molla',
-    laji: 'Thai Siamese',
-    sijainti: 'Oulu',
-    omistaja: 'Vilma',
-    lelu: 'hiiri',
-    kuva: image3,
-    liked: true,
-  },
-];
 
 const theme = createTheme({
   palette: {
@@ -91,8 +24,6 @@ const theme = createTheme({
     fontFamily: "'Sometype Mono', 'monospace'",
   },
 });
-
-export const AppContext = createContext(null);
 
 const ProtectedLayout = () => {
   return (
@@ -141,16 +72,13 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  const [cats, setCats] = useState(mockData);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppContext.Provider value={{ cats, setCats }}>
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-      </AppContext.Provider>
     </ThemeProvider>
   );
 }

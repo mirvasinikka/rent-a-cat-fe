@@ -1,15 +1,13 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import AttachmentIcon from '@mui/icons-material/Attachment';
 import AddIcon from '@mui/icons-material/Add';
 import { Box, TextField, Button, Typography, InputLabel } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { AppContext } from '../App';
 
 const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '', kuvaNimi: '' };
 
 function CatForm() {
   const navigate = useNavigate();
-  const {cats, setCats} = useContext(AppContext);
   const [message, setMessage] = useState('');
   const [cat, setCat] = useState(initalCatState);
 
@@ -27,22 +25,37 @@ function CatForm() {
 
   const muutaCatKuva = (e) => {
     if (e.target.files) {
-    setCat({ ...cat, kuva: URL.createObjectURL(e.target.files[0]), kuvaNimi: e.target.files[0].name });
+      setCat({ ...cat, kuva: URL.createObjectURL(e.target.files[0]), kuvaNimi: e.target.files[0].name });
     }
   };
 
-  const handleCatUpdate = (cat) => {
-    setCats([...cats, cat]);
-  };
-
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (cat.nimi === '' || cat.laji === '' || cat.sijainti === '' || cat.omistaja === '' || cat.lelu === '' || cat.kuva === '') {
       setMessage('Kaikissa kentissä täytyy olla arvot, myös kuva!');
-    } else {
-      handleCatUpdate(cat);
-      setCat(initalCatState);
-      setMessage('Tiedot tallennettin!');
-      navigate('/');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/cats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cat),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setCat(initalCatState);
+        setMessage('Tiedot tallennettin!');
+        navigate('/');
+      } else {
+        throw new Error(data.error || 'Unknown error occurred');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('Virhe tiedon tallennuksessa');
     }
   };
 

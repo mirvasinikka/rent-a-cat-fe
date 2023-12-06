@@ -1,13 +1,29 @@
-import { useContext } from 'react';
-import { AppContext } from '../App';
 import InfoIcon from '@mui/icons-material/Info';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { Box, Button, Card, CardActions, CardContent, CardMedia, Grid, IconButton, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 function CatList() {
-  const { cats, setCats } = useContext(AppContext);
+  const [cats, setCats] = useState([]);
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const response = await fetch('/api/cats');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const catsData = await response.json();
+        setCats(catsData);
+      } catch (error) {
+        console.error('Failed to fetch cats:', error);
+      }
+    };
+
+    fetchCats();
+  }, []);
 
   if (cats.length === 0) {
     return <p>Kissoja ei ole</p>;
@@ -46,4 +62,5 @@ function CatList() {
     </Box>
   );
 }
+
 export default CatList;
