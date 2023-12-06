@@ -207,6 +207,23 @@ app.get('/api/cats', (req, res) => {
   });
 });
 
+app.get('/api/cats/:id', (req, res) => {
+  const id = req.params.id;
+
+  catsDB.get('SELECT * FROM cats WHERE id = ?', [id], (err, row) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+
+    if (row) {
+      res.json(row);
+    } else {
+      res.status(404).send('Cat not found');
+    }
+  });
+});
+
 app.put('/api/cats/:id', (req, res) => {
   const { id } = req.params;
   const { nimi, laji, sijainti, omistaja, lelu, kuva } = req.body;
