@@ -84,10 +84,11 @@ function insertMockData() {
     if (err) {
       console.error('Error checking cats count:', err.message);
     } else if (row.count === 0) {
-      const insertStmt = catsDB.prepare('INSERT INTO cats (nimi, laji, sijainti, omistaja, lelu, kuva) VALUES (?, ?, ?, ?, ?, ?)');
+      const insertStmt = catsDB.prepare('INSERT INTO cats (nimi, laji, sijainti, omistaja, lelu, kuva, liked) VALUES (?, ?, ?, ?, ?, ?, ?)');
 
       mockData.forEach((cat) => {
-        insertStmt.run([cat.nimi, cat.laji, cat.sijainti, cat.omistaja, cat.lelu, cat.kuva], (err) => {
+        const liked = cat.liked ? 1 : 0;
+        insertStmt.run([cat.nimi, cat.laji, cat.sijainti, cat.omistaja, cat.lelu, cat.kuva, liked], (err) => {
           if (err) {
             console.error('Error inserting mock data:', err.message);
           }
@@ -130,7 +131,8 @@ catsDB.run(
     sijainti TEXT,
     omistaja TEXT,
     lelu TEXT,
-    kuva TEXT
+    kuva TEXT,
+    liked INTEGER DEFAULT 0
   )
 `,
   (err) => {
@@ -252,6 +254,27 @@ app.delete('/api/cats/:id', (req, res) => {
     res.json({ message: 'Cat deleted successfully' });
   });
 });
+
+app.put('/api/cats/like/:id', (req, res) => {
+  const id = req.params.id;
+  const liked = req.body.liked;
+
+  const likedInt = liked ? 1 : 0;
+
+  catsDB.run('UPDATE cats SET liked = ? WHERE id = ?', [likedInt, id], function (err) {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+
+    if (this.changes === 0) {
+      res.status(404).json({ error: 'Cat not found' });
+    } else {
+      res.json({ message: 'Liked status updated successfully' });
+    }
+  });
+});
+
 
 app.listen(port, () => {
   console.log(`server is runnig at http://localhost:${port}`);
