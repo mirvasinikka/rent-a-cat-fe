@@ -29,10 +29,29 @@ function CatList() {
     return <p>Kissoja ei ole</p>;
   }
 
-  const handleLikes = (catId) => {
-    const updateLike = (cat) => (cat.id === catId ? { ...cat, liked: !cat.liked } : cat);
-    setCats((prevCats) => prevCats.map(updateLike));
-  };
+ const handleLikes = async (catId) => {
+   const likedCat = cats.find((cat) => cat.id === catId);
+   if (likedCat) {
+     try {
+       const response = await fetch(`/api/cats/like/${catId}`, {
+         method: 'PUT',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ liked: !likedCat.liked }),
+       });
+
+       if (!response.ok) {
+         throw new Error('Network response was not ok');
+       }
+
+       setCats((prevCats) => prevCats.map((cat) => (cat.id === catId ? { ...cat, liked: !cat.liked } : cat)));
+     } catch (error) {
+       console.error('Failed to update like status:', error);
+     }
+   }
+ };
+
 
   return (
     <Box sx={{ marginTop: 3 }}>

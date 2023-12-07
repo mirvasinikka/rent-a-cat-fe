@@ -1,11 +1,27 @@
-import { useContext } from 'react';
-import { AppContext } from '../App';
+import { useState, useEffect } from 'react';
 import { Box, Button, Card, CardContent, CardMedia, Grid, Typography } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 
 function LikedCats() {
-  const { cats } = useContext(AppContext);
+  const [cats, setCats] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchCats = async () => {
+      try {
+        const response = await fetch('/api/cats');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const catsData = await response.json();
+        setCats(catsData);
+      } catch (error) {
+        console.error('Failed to fetch liked cats:', error);
+      }
+    };
+
+    fetchCats();
+  }, []);
 
   const likedCats = cats.filter((cat) => cat.liked);
 
