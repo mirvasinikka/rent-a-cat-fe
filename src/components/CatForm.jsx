@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import AttachmentIcon from '@mui/icons-material/Attachment';
 import AddIcon from '@mui/icons-material/Add';
 import { Box, TextField, Button, Typography, InputLabel } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import EditIcon from '@mui/icons-material/Edit';
 
 const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '', kuvaNimi: '' };
 
@@ -10,6 +11,17 @@ function CatForm() {
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [cat, setCat] = useState(initalCatState);
+  let { id: catId } = useParams();
+  const isEditing = catId != null;
+
+  useEffect(() => {
+    if (isEditing) {
+      fetch(`/api/cats/${catId}`)
+        .then((response) => response.json())
+        .then((data) => setCat(data))
+        .catch((error) => console.error('Error:', error));
+    }
+  }, [catId, isEditing]);
 
   useEffect(() => {
     if (cat.nimi && cat.laji && cat.sijainti && cat.omistaja && cat.lelu && cat.kuva) {
@@ -35,9 +47,12 @@ function CatForm() {
       return;
     }
 
+    const method = isEditing ? 'PUT' : 'POST';
+    const url = isEditing ? `/api/cats/${catId}` : '/api/cats';
+
     try {
-      const response = await fetch('/api/cats', {
-        method: 'POST',
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -48,7 +63,7 @@ function CatForm() {
 
       if (response.ok) {
         setCat(initalCatState);
-        setMessage('Tiedot tallennettin!');
+        setMessage(isEditing ? 'Tiedot päivitetty!' : 'Tiedot tallennettin!');
         navigate('/');
       } else {
         throw new Error(data.error || 'Unknown error occurred');
@@ -62,15 +77,21 @@ function CatForm() {
   return (
     <>
       <Box component="form" autoComplete="off" sx={{ '& .MuiTextField-root': { marginBottom: 2 }, margin: 5 }}>
-        <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden />
-
-        <InputLabel htmlFor="kuva" sx={{ marginBottom: 5 }}>
-          <Typography sx={{ display: 'inline' }}>Kuva</Typography>
-          <Button component="span" onClick={muutaCatKuva}>
+        <Box sx={{ marginBottom: 5, textAlign: 'center' }}>
+          {cat.kuva && (
+            <img
+              src={cat.kuva.startsWith('blob:') ? cat.kuva : `http://localhost:3001${cat.kuva}`}
+              alt="Cat"
+              style={{ maxWidth: '300px', maxHeight: '300px' }}
+            />
+          )}
+          <input accept="image/*" name="kuva" id="kuva" type="file" onChange={muutaCatKuva} hidden />
+          <Typography sx={{ display: 'inline' }}>Kuva: {cat.kuvaNimi}</Typography>
+          <Button component="span" onClick={() => document.getElementById('kuva').click()}>
             <AttachmentIcon fontSize="large" />
+            Upload Image
           </Button>
-          {cat.kuvaNimi}
-        </InputLabel>
+        </Box>
 
         <TextField label="Kissan nimi" name="nimi" value={cat.nimi} onChange={muutaCat} required fullWidth autoFocus />
         <TextField label="Laji" name="laji" value={cat.laji} onChange={muutaCat} required fullWidth />
@@ -79,8 +100,14 @@ function CatForm() {
         <TextField label="Lempilelu" name="lelu" value={cat.lelu} onChange={muutaCat} required fullWidth />
 
         <Box sx={{ textAlign: 'center' }}>
-          <Button size="large" onClick={handleSubmit} variant="contained" sx={{ marginRight: 3, marginTop: 3 }} startIcon={<AddIcon />}>
-            Lisää
+          <Button
+            size="large"
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{ marginRight: 3, marginTop: 3 }}
+            startIcon={isEditing ? <EditIcon /> : <AddIcon />}
+          >
+            {isEditing ? 'Päivitä' : 'Lisää'}
           </Button>
           <p>{message}</p>
         </Box>

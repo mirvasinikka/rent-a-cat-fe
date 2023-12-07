@@ -1,6 +1,7 @@
 import InfoIcon from '@mui/icons-material/Info';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import EditIcon from '@mui/icons-material/Edit';
 import { Box, Button, Card, CardActions, CardContent, CardMedia, Grid, IconButton, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -29,29 +30,28 @@ function CatList() {
     return <p>Kissoja ei ole</p>;
   }
 
- const handleLikes = async (catId) => {
-   const likedCat = cats.find((cat) => cat.id === catId);
-   if (likedCat) {
-     try {
-       const response = await fetch(`/api/cats/like/${catId}`, {
-         method: 'PUT',
-         headers: {
-           'Content-Type': 'application/json',
-         },
-         body: JSON.stringify({ liked: !likedCat.liked }),
-       });
+  const handleLikes = async (catId) => {
+    const likedCat = cats.find((cat) => cat.id === catId);
+    if (likedCat) {
+      try {
+        const response = await fetch(`/api/cats/like/${catId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ liked: !likedCat.liked }),
+        });
 
-       if (!response.ok) {
-         throw new Error('Network response was not ok');
-       }
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
 
-       setCats((prevCats) => prevCats.map((cat) => (cat.id === catId ? { ...cat, liked: !cat.liked } : cat)));
-     } catch (error) {
-       console.error('Failed to update like status:', error);
-     }
-   }
- };
-
+        setCats((prevCats) => prevCats.map((cat) => (cat.id === catId ? { ...cat, liked: !cat.liked } : cat)));
+      } catch (error) {
+        console.error('Failed to update like status:', error);
+      }
+    }
+  };
 
   return (
     <Box sx={{ marginTop: 3 }}>
@@ -72,6 +72,9 @@ function CatList() {
                     <InfoIcon color="secondary" />
                   </Button>
                   <IconButton onClick={() => handleLikes(cat.id)}>{cat.liked ? <FavoriteIcon /> : <FavoriteBorderOutlinedIcon />}</IconButton>
+                  <Button component={Link} to={'/edit/' + (index + 1)}>
+                    <EditIcon color="secondary" />
+                  </Button>
                 </CardActions>
               </Card>
             </Grid>

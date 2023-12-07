@@ -52,6 +52,10 @@ const router = createBrowserRouter([
         element: <CatForm />,
       },
       {
+        path: 'edit/:id',
+        element: <CatForm />,
+      },
+      {
         path: 'info/:id',
         element: <CatInfo />,
       },
