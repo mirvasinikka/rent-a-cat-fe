@@ -26,6 +26,7 @@ app.use(
 const usersDB = new sqlite3.Database('./users.db');
 const catsDB = new sqlite3.Database('./cats.db');
 const likedCatsDB = new sqlite3.Database('./liked-cats.db');
+const rentDB = new sqlite3.Database('./rent.db');
 
 const mockCatData = [];
 const catNames = [
@@ -282,6 +283,29 @@ likedCatsDB.run(
       console.error('Error creating likedCats table: ', err.message);
     } else {
       console.log('likedCats table created or already exists');
+    }
+  },
+);
+
+// Creating rents
+rentDB.run(
+  `
+  CREATE TABLE IF NOT EXISTS rentals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    catId INTEGER,
+    usersName TEXT,
+    userEmail TEXT,
+    rentStartDate TEXT,
+    rentEndDate TEXT,
+    FOREIGN KEY (catId) REFERENCES cats(id),
+    FOREIGN KEY (usersName) REFERENCES users(userName)
+  )
+`,
+  (err) => {
+    if (err) {
+      console.error('Error creating rentals table: ', err.message);
+    } else {
+      console.log('Rentals table created or already exists');
     }
   },
 );
@@ -589,22 +613,19 @@ app.get('/api/allcats', (req, res) => {
   });
 });
 
-app.get('/api/cats/search', (req, res) => {
-  const { city, startDate, endDate } = req.query;
+app.post('/api/rent-cat', (req, res) => {
+  const { catId, usersName, userEmail, rentStartDate, rentEndDate } = req.body;
 
-  if (!city) {
-    res.status(400).json({ error: 'City parameter is required' });
-    return;
-  }
-  const query = 'SELECT * FROM cats WHERE city = ? AND available_from <= ? AND available_until >= ?';
+  const sql = `INSERT INTO rentals (catId, usersName, userEmail, rentStartDate, rentEndDate) VALUES (?, ?, ?, ?, ?)`;
 
-  catsDB.all(query, [city, startDate, endDate], (err, rows) => {
+  rentDB.run(sql, [catId, usersName, userEmail, rentStartDate, rentEndDate], function (err) {
     if (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Error inserting rental data:', err.message);
+      res.status(500).json({ error: 'Internal server error' });
       return;
     }
 
-    res.json(rows);
+    res.status(200).json({ message: 'Cat rental successfully recorded', rentalId: this.lastID });
   });
 });
 
