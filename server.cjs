@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const helmet = require('helmet');
+const session = require('express-session');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -13,10 +14,19 @@ app.use(cors());
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use('/assets', express.static('public/assets'));
 
+app.use(
+  session({
+    secret: 'cat-a-rent',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false },
+  }),
+);
+
 const usersDB = new sqlite3.Database('./users.db');
 const catsDB = new sqlite3.Database('./cats.db');
 
-const mockData = [];
+const mockCatData = [];
 const catNames = [
   'Miri',
   'Musti',
@@ -99,7 +109,7 @@ for (let i = 0; i < 200; i++) {
   const randomBreedIndex = Math.floor(Math.random() * catBreeds.length);
   const randomCityIndex = Math.floor(Math.random() * cities.length);
 
-  mockData.push({
+  mockCatData.push({
     id: i + 1,
     nimi: catNames[randomNameIndex],
     laji: catBreeds[randomBreedIndex],
@@ -113,9 +123,7 @@ for (let i = 0; i < 200; i++) {
   });
 }
 
-console.log(mockData);
-
-function insertMockData() {
+function insertCatMockData() {
   catsDB.get('SELECT COUNT(*) AS count FROM cats', (err, row) => {
     if (err) {
       console.error('Error checking cats count:', err.message);
@@ -124,7 +132,7 @@ function insertMockData() {
         'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, liked, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       );
 
-      mockData.forEach((cat) => {
+      mockCatData.forEach((cat) => {
         const liked = cat.liked ? 1 : 0;
         insertStmt.run([cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, liked, cat.available_from, cat.available_until], (err) => {
           if (err) {
@@ -135,19 +143,60 @@ function insertMockData() {
 
       insertStmt.finalize();
     } else {
-      console.log('Mock data already exists');
+      console.log('Mock cat data already exists');
     }
   });
 }
 
-// Creating users
+const mockUserData = [
+  { username: 'admin', password: 'admin', email: 'admin@example.com', role: 'admin' },
+  { username: 'normal', password: 'normal', email: 'normal@example.com', role: 'normal' },
+];
+
+function insertUserMockData() {
+  usersDB.get('SELECT COUNT(*) AS count FROM users', (err, row) => {
+    if (err) {
+      console.error('Error checking users count:', err.message);
+    } else if (row.count === 0) {
+      const insertStmt = usersDB.prepare('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)');
+
+      let completedInsertions = 0;
+
+      mockUserData.forEach((user) => {
+        bcrypt.hash(user.password, 10, (hashErr, hash) => {
+          if (hashErr) {
+            console.error('Error hashing password:', hashErr.message);
+            return;
+          }
+
+          insertStmt.run([user.username, hash, user.email, user.role], (insertErr) => {
+            if (insertErr) {
+              console.error('Error inserting mock data:', insertErr.message);
+            }
+
+            completedInsertions++;
+
+            if (completedInsertions === mockUserData.length) {
+              insertStmt.finalize();
+            }
+          });
+        });
+      });
+    } else {
+      console.log('Mock user data already exists');
+    }
+  });
+}
+
+// Create Users Table
 usersDB.run(
   `
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE,
     password TEXT,
-    email TEXT UNIQUE
+    email TEXT UNIQUE,
+    role TEXT
   )
 `,
   (err) => {
@@ -155,11 +204,12 @@ usersDB.run(
       console.error('Error creating users table: ', err.message);
     } else {
       console.log('Users table created or already exists');
+      insertUserMockData();
     }
   },
 );
 
-// Creating cats
+// Create Cats Table
 catsDB.run(
   `
   CREATE TABLE IF NOT EXISTS cats (
@@ -180,7 +230,7 @@ catsDB.run(
       console.error('Error creating cats table: ', err.message);
     } else {
       console.log('Cats table created or already exists');
-      insertMockData();
+      insertCatMockData();
     }
   },
 );
@@ -199,11 +249,14 @@ app.post('/api/register', async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   usersDB.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
-    if (err) return res.status(400).json({ error: 'Username already taken or invalid input' });
-  });
+    if (err) {
+      // Send an error response and return to prevent further execution
+      return res.status(400).json({ error: 'Username already taken or invalid input' });
+    }
 
-  res.json({ message: 'Registration successful' });
-  return;
+    // Send a success response
+    res.json({ message: 'Registration successful' });
+  });
 });
 
 app.post('/api/login', (req, res) => {
@@ -211,16 +264,34 @@ app.post('/api/login', (req, res) => {
 
   usersDB.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
     if (err || !user) {
-      return res.status(401).json({ error: 'Invalid username' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(402).json({ error: 'Invalid password' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
+    req.session.user = { id: user.id, username: user.username, role: user.role };
     res.json({ message: 'Login successful' });
   });
+});
+
+app.post('/api/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Could not log out, please try again' });
+    }
+    res.json({ message: 'Logout successful' });
+  });
+});
+
+app.get('/api/user/profile', (req, res) => {
+  if (req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.status(401).json({ error: 'Not authenticated' });
+  }
 });
 
 app.post('/api/cats', (req, res) => {
