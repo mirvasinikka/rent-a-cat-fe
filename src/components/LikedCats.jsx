@@ -48,7 +48,7 @@ function LikedCats() {
                   <Typography gutterBottom variant="h5" component="div">
                     {cat.nimi}
                   </Typography>
-                  <Typography variant="h6">{cat.sijainti}</Typography>
+                  <Typography variant="h6">{cat.city}</Typography>
                 </CardContent>
               </Card>
             </Grid>

@@ -13,6 +13,10 @@ import Register from './components/Register';
 import RequireAuth from './components/RequireAuth';
 import { AuthProvider } from './components/AuthContext';
 import { CssBaseline } from '@mui/material';
+import HomePage from './components/HomePage';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import fi from 'date-fns/locale/fi';
 
 const theme = createTheme({
   palette: {
@@ -39,17 +43,16 @@ const router = createBrowserRouter([
     errorElement: <Error />,
     children: [
       {
-        element: <ProtectedLayout />,
-        children: [
-          {
-            path: '/',
-            element: <CatList />,
-          },
-        ],
+        path: '/cats',
+        element: <CatList />,
       },
       {
         path: 'add',
         element: <CatForm />,
+      },
+      {
+        path: '/',
+        element: <HomePage />,
       },
       {
         path: 'edit/:id',
@@ -76,14 +79,15 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={fi}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>
-    </ThemeProvider>
+      </ThemeProvider>
+    </LocalizationProvider>
   );
 }
 

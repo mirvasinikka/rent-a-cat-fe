@@ -21,61 +21,73 @@ const mockData = [
     id: 1,
     nimi: 'Miri',
     laji: 'Scottish long hair',
-    sijainti: 'Helsinki',
+    city: 'Helsinki',
     omistaja: 'Mirva',
     lelu: 'pallo',
     kuva: '/assets/miri1.jpg',
     liked: true,
+    available_from: '2023-12-09',
+    available_until: '2024-12-10',
   },
   {
     id: 2,
     nimi: 'Musti',
     laji: 'Persian',
-    sijainti: 'Espoo',
+    city: 'Espoo',
     omistaja: 'Pekka',
     lelu: 'naru',
     kuva: '/assets/miri4.jpg',
     liked: false,
+    available_from: '2023-12-24',
+    available_until: '2024-12-09',
   },
   {
     id: 3,
     nimi: 'Molla',
     laji: 'Thai Siamese',
-    sijainti: 'Oulu',
+    city: 'Oulu',
     omistaja: 'Vilma',
     lelu: 'hiiri',
     kuva: '/assets/miri11.jpg',
     liked: false,
+    available_from: '2023-12-15',
+    available_until: '2024-01-09',
   },
   {
     id: 4,
     nimi: 'Miri',
     laji: 'Scottish long hair',
-    sijainti: 'Helsinki',
+    city: 'Helsinki',
     omistaja: 'Mirva',
     lelu: 'pallo',
     kuva: '/assets/miri1.jpg',
     liked: false,
+    available_from: '2023-12-09',
+    available_until: '2024-12-09',
   },
   {
     id: 5,
     nimi: 'Musti',
     laji: 'Persian',
-    sijainti: 'Espoo',
+    city: 'Espoo',
     omistaja: 'Pekka',
     lelu: 'naru',
     kuva: '/assets/miri4.jpg',
     liked: false,
+    available_from: '2023-12-09',
+    available_until: '2023-12-24',
   },
   {
     id: 6,
     nimi: 'Molla',
     laji: 'Thai Siamese',
-    sijainti: 'Oulu',
+    city: 'Oulu',
     omistaja: 'Vilma',
     lelu: 'hiiri',
     kuva: '/assets/miri11.jpg',
     liked: true,
+    available_from: '2023-12-09',
+    available_until: '2023-12-24',
   },
 ];
 
@@ -84,11 +96,13 @@ function insertMockData() {
     if (err) {
       console.error('Error checking cats count:', err.message);
     } else if (row.count === 0) {
-      const insertStmt = catsDB.prepare('INSERT INTO cats (nimi, laji, sijainti, omistaja, lelu, kuva, liked) VALUES (?, ?, ?, ?, ?, ?, ?)');
+      const insertStmt = catsDB.prepare(
+        'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, liked, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      );
 
       mockData.forEach((cat) => {
         const liked = cat.liked ? 1 : 0;
-        insertStmt.run([cat.nimi, cat.laji, cat.sijainti, cat.omistaja, cat.lelu, cat.kuva, liked], (err) => {
+        insertStmt.run([cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, liked, cat.available_from, cat.available_until], (err) => {
           if (err) {
             console.error('Error inserting mock data:', err.message);
           }
@@ -128,11 +142,13 @@ catsDB.run(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nimi TEXT,
     laji TEXT,
-    sijainti TEXT,
+    city TEXT,
     omistaja TEXT,
     lelu TEXT,
     kuva TEXT,
-    liked INTEGER DEFAULT 0
+    liked INTEGER DEFAULT 0,
+    available_from DATE,
+    available_until DATE  
   )
 `,
   (err) => {
@@ -184,11 +200,11 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post('/api/cats', (req, res) => {
-  const { nimi, laji, sijainti, omistaja, lelu, kuva } = req.body;
+  const { nimi, laji, city, omistaja, lelu, kuva, available_from, available_until } = req.body;
 
   catsDB.run(
-    'INSERT INTO cats (nimi, laji, sijainti, omistaja, lelu, kuva) VALUES (?, ?, ?, ?, ?, ?)',
-    [nimi, laji, sijainti, omistaja, lelu, kuva],
+    'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until],
     (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -200,11 +216,20 @@ app.post('/api/cats', (req, res) => {
 });
 
 app.get('/api/cats', (req, res) => {
-  catsDB.all('SELECT * FROM cats', [], (err, rows) => {
+  const { city, startDate, endDate } = req.query;
+
+  if (!city) {
+    res.status(400).json({ error: 'City parameter is required' });
+    return;
+  }
+  const query = 'SELECT * FROM cats WHERE city = ? AND available_from <= ? AND available_until >= ?';
+
+  catsDB.all(query, [city, startDate, endDate], (err, rows) => {
     if (err) {
-      res.status(400).json({ error: err.message });
+      res.status(500).json({ error: err.message });
       return;
     }
+
     res.json(rows);
   });
 });
@@ -228,11 +253,11 @@ app.get('/api/cats/:id', (req, res) => {
 
 app.put('/api/cats/:id', (req, res) => {
   const { id } = req.params;
-  const { nimi, laji, sijainti, omistaja, lelu, kuva } = req.body;
+  const { nimi, laji, city, omistaja, lelu, kuva, available_from, available_until } = req.body;
 
   catsDB.run(
-    'UPDATE cats SET nimi = ?, laji = ?, sijainti = ?, omistaja = ?, lelu = ?, kuva = ? WHERE id = ?',
-    [nimi, laji, sijainti, omistaja, lelu, kuva, id],
+    'UPDATE cats SET nimi = ?, laji = ?, city = ?, omistaja = ?, lelu = ?, kuva = ?, available_from = ?, available_until = ? WHERE id = ?',
+    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, id],
     (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -272,6 +297,25 @@ app.put('/api/cats/like/:id', (req, res) => {
     } else {
       res.json({ message: 'Liked status updated successfully' });
     }
+  });
+});
+
+app.get('/api/cats/search', (req, res) => {
+  const { city, startDate, endDate } = req.query;
+
+  if (!city) {
+    res.status(400).json({ error: 'City parameter is required' });
+    return;
+  }
+  const query = 'SELECT * FROM cats WHERE city = ? AND available_from <= ? AND available_until >= ?';
+
+  catsDB.all(query, [city, startDate, endDate], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+
+    res.json(rows);
   });
 });
 

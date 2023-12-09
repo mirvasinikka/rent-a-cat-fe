@@ -62,7 +62,7 @@ function CatInfo() {
         <Typography variant="h6">Nimi: </Typography> <Typography variant="h6"> {cat.nimi}</Typography>
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
-        <Typography variant="h6">Kaupunki: </Typography> <Typography variant="h6"> {cat.sijainti}</Typography>
+        <Typography variant="h6">Kaupunki: </Typography> <Typography variant="h6"> {cat.city}</Typography>
       </Box>
       <Box sx={{ display: 'flex', gap: 1 }}>
         <Typography variant="h6">Laji: </Typography> <Typography variant="h6"> {cat.laji}</Typography>
