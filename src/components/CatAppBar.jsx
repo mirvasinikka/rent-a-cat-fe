@@ -1,12 +1,14 @@
-import { AppBar, Avatar, Badge, Box, Button, ListItemText, Menu, MenuItem, Toolbar, styled } from '@mui/material';
+import { AppBar, Avatar, Badge, Box, Button, Divider, ListItemIcon, ListItemText, Menu, MenuItem, Toolbar, styled } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PetsIcon from '@mui/icons-material/Pets';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useEffect, useState } from 'react';
+import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -41,9 +43,34 @@ function CatAppBar() {
   const { isAuthenticated, logout } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const [user, setUser] = useState();
+  const navigate = useNavigate();
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
+  };
+
+  const handleLogout = async () => {
+    logout();
+    try {
+      await fetch('/api/user/logout', {
+        method: 'POST',
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to logout', error);
+    } finally {
+      handleClose();
+    }
+  };
+
+  const handleProfile = () => {
+    navigate('/profile');
+    handleClose();
+  };
+
+  const handleLikes = () => {
+    navigate('/likes');
+    handleClose();
   };
 
   const handleClose = () => {
@@ -63,8 +90,6 @@ function CatAppBar() {
 
     fetchUserProfile();
   }, []);
-
-
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -91,25 +116,43 @@ function CatAppBar() {
 
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} />
 
-          <Button size="large" component={Link} to="likes" color="inherit">
-            <FavoriteIcon fontSize="large" sx={{ marginRight: 1 }} /> Likes
-          </Button>
-          <Button size="large" component={Link} to="add" color="inherit">
-            <AddCircleOutlineOutlinedIcon fontSize="large" sx={{ marginRight: 1 }} /> Add a cat
-          </Button>
-          {isAuthenticated && (
-            <div>
-              <IconButton onClick={handleMenu} sx={{ p: 0 }}>
+          {isAuthenticated ? (
+            <>
+              <Button size="large" component={Link} to="add" color="inherit">
+                <AddCircleOutlineOutlinedIcon fontSize="large" sx={{ marginRight: 1 }} /> Add a cat
+              </Button>
+              <IconButton onClick={handleMenu}>
                 <StyledBadge overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} variant="dot">
-                  <Avatar alt={user?.username} src={''} sx={{ width: 56, height: 56 }} />
+                  <Avatar alt={user?.username} src={user?.avatarUrl} sx={{ width: 50, height: 50 }} />
                 </StyledBadge>
               </IconButton>
-              <Menu id="menu-appbar" anchorEl={anchorEl} keepMounted open={Boolean(anchorEl)} onClose={handleClose}>
-                <MenuItem onClick={logout}>
+              <Menu id="menu-appbar" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ marginTop: 1 }}>
+                <MenuItem onClick={handleProfile} sx={{ padding: 2 }}>
+                  <ListItemIcon>
+                    <PersonIcon sx={{ marginRight: 1 }} />
+                  </ListItemIcon>
+                  <ListItemText sx={{ paddingLeft: 2, paddingRight: 2 }}>Profile</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLikes} sx={{ padding: 2 }}>
+                  <ListItemIcon>
+                    <FavoriteIcon sx={{ marginRight: 1 }} />
+                  </ListItemIcon>
+                  <ListItemText sx={{ paddingLeft: 2, paddingRight: 2 }}>Likes</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLogout} sx={{ padding: 2 }}>
+                  <ListItemIcon>
+                    <LogoutIcon sx={{ marginRight: 1 }} />
+                  </ListItemIcon>
                   <ListItemText sx={{ paddingLeft: 2, paddingRight: 2 }}>Logout</ListItemText>
                 </MenuItem>
               </Menu>
-            </div>
+            </>
+          ) : (
+            <Button size="large" component={Link} to="login" color="inherit">
+              <PersonIcon fontSize="large" sx={{ marginRight: 1 }} /> Login
+            </Button>
           )}
         </Toolbar>
       </AppBar>

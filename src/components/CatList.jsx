@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  CircularProgress,
 } from '@mui/material';
 import Pagination from '@mui/material/Pagination';
 import InfoIcon from '@mui/icons-material/Info';
@@ -22,15 +24,18 @@ import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlin
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useAuth } from './AuthContext';
 
 function CatList() {
   const [cats, setCats] = useState([]);
+  const { isAuthenticated } = useAuth();
   const [openDialog, setOpenDialog] = useState(false);
   const [catToDelete, setCatToDelete] = useState(null);
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [catsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -53,6 +58,7 @@ function CatList() {
         }
         const catsData = await response.json();
         setCats(catsData);
+        setLoading(false);
       } catch (error) {
         console.error('Failed to fetch cats:', error);
       }
@@ -116,6 +122,9 @@ function CatList() {
   const indexOfLastCat = currentPage * catsPerPage;
   const indexOfFirstCat = indexOfLastCat - catsPerPage;
   const currentCats = cats.slice(indexOfFirstCat, indexOfLastCat);
+  if (isLoading) {
+    return <CircularProgress />;
+  }
 
   if (cats.length === 0) {
     return <p>Kissoja ei ole</p>;
@@ -139,12 +148,16 @@ function CatList() {
                   <InfoIcon color="primary" />
                 </Button>
                 <IconButton onClick={() => handleLikes(cat.id)}>{cat.liked ? <FavoriteIcon /> : <FavoriteBorderOutlinedIcon />}</IconButton>
-                <Button component={Link} to={'/edit/' + cat.id}>
-                  <EditIcon color="primary" />
-                </Button>
-                <Button onClick={() => handleOpenDialog(cat.id)}>
-                  <DeleteIcon color="error" />
-                </Button>
+                {isAuthenticated && (
+                  <>
+                    <Button component={Link} to={'/edit/' + cat.id}>
+                      <EditIcon color="primary" />
+                    </Button>
+                    <Button onClick={() => handleOpenDialog(cat.id)}>
+                      <DeleteIcon color="error" />
+                    </Button>
+                  </>
+                )}
               </CardActions>
             </Card>
           </Grid>
