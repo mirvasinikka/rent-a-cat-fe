@@ -18,9 +18,14 @@ const HomePage = () => {
   }, []);
 
   const handleSearch = async () => {
-    const formattedStartDate = startDate.toISOString().split('T')[0];
-    const formattedEndDate = endDate.toISOString().split('T')[0];
 
+     const offset = startDate.getTimezoneOffset();
+     const adjustedStartDate = new Date(startDate.getTime() - offset * 60 * 1000);
+     const adjustedEndDate = new Date(endDate.getTime() - offset * 60 * 1000);
+
+    const formattedStartDate = adjustedStartDate.toISOString().split('T')[0];
+    const formattedEndDate = adjustedEndDate.toISOString().split('T')[0];
+   
     const queryParams = new URLSearchParams({
       city: city,
       startDate: formattedStartDate,

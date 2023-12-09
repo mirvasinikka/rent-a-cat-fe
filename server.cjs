@@ -16,80 +16,104 @@ app.use('/assets', express.static('public/assets'));
 const usersDB = new sqlite3.Database('./users.db');
 const catsDB = new sqlite3.Database('./cats.db');
 
-const mockData = [
-  {
-    id: 1,
-    nimi: 'Miri',
-    laji: 'Scottish long hair',
-    city: 'Helsinki',
-    omistaja: 'Mirva',
-    lelu: 'pallo',
-    kuva: '/assets/miri1.jpg',
-    liked: true,
-    available_from: '2023-12-09',
-    available_until: '2024-12-10',
-  },
-  {
-    id: 2,
-    nimi: 'Musti',
-    laji: 'Persian',
-    city: 'Espoo',
-    omistaja: 'Pekka',
-    lelu: 'naru',
-    kuva: '/assets/miri4.jpg',
-    liked: false,
-    available_from: '2023-12-24',
-    available_until: '2024-12-09',
-  },
-  {
-    id: 3,
-    nimi: 'Molla',
-    laji: 'Thai Siamese',
-    city: 'Oulu',
-    omistaja: 'Vilma',
-    lelu: 'hiiri',
-    kuva: '/assets/miri11.jpg',
-    liked: false,
-    available_from: '2023-12-15',
-    available_until: '2024-01-09',
-  },
-  {
-    id: 4,
-    nimi: 'Miri',
-    laji: 'Scottish long hair',
-    city: 'Helsinki',
-    omistaja: 'Mirva',
-    lelu: 'pallo',
-    kuva: '/assets/miri1.jpg',
-    liked: false,
-    available_from: '2023-12-09',
-    available_until: '2024-12-09',
-  },
-  {
-    id: 5,
-    nimi: 'Musti',
-    laji: 'Persian',
-    city: 'Espoo',
-    omistaja: 'Pekka',
-    lelu: 'naru',
-    kuva: '/assets/miri4.jpg',
-    liked: false,
-    available_from: '2023-12-09',
-    available_until: '2023-12-24',
-  },
-  {
-    id: 6,
-    nimi: 'Molla',
-    laji: 'Thai Siamese',
-    city: 'Oulu',
-    omistaja: 'Vilma',
-    lelu: 'hiiri',
-    kuva: '/assets/miri11.jpg',
-    liked: true,
-    available_from: '2023-12-09',
-    available_until: '2023-12-24',
-  },
+const mockData = [];
+const catNames = [
+  'Miri',
+  'Musti',
+  'Molla',
+  'Milla',
+  'Missi',
+  'Maissi',
+  'Rölli',
+  'Luna',
+  'Leo',
+  'Bella',
+  'Milo',
+  'Nala',
+  'Simba',
+  'Oliver',
+  'Kitty',
+  'Charlie',
+  'Lucy',
+  'Max',
+  'Shadow',
+  'Smokey',
+  'Jasper',
+  'Oreo',
+  'Tiger',
+  'Buddy',
+  'Loki',
+  'Stella',
+  'Daisy',
+  'Lily',
+  'Zoe',
+  'Coco',
+  'Ruby',
+  'Gracie',
+  'Rosie',
+  'Molly',
+  'Frankie',
+  'Felix',
+  'Oscar',
+  'Toby',
+  'Gizmo',
+  'Sam',
+  'Sammy',
+  'Tilly',
+  'Penny',
+  'Pepper',
+  'Leo',
+  'Jack',
+  'George',
+  'Roxy',
+  'Rascal',
+  'Sasha',
+  'Ginger',
+  'Midnight',
+  'Boo',
+  'Sunny',
+  'Skye',
+  'Angel',
 ];
+const catBreeds = ['Scottish long hair', 'Persian', 'Thai Siamese'];
+const cities = ['Helsinki', 'Espoo', 'Oulu', 'Vantaa', 'Tampere', 'Turku', 'Rovaniemi'];
+const owners = ['Mirva', 'Pekka', 'Vilma', 'Jussi', 'Ida', 'Hilla', 'Tiina', 'Matti', 'Juhani'];
+const toys = ['pallo', 'naru', 'hiiri', 'aktivointi-lelu', 'raapimapuu'];
+
+const getCurrentDate = () => {
+  const today = new Date();
+  return today.toISOString().split('T')[0];
+};
+
+const getRandomFutureDate = (startDate) => {
+  const start = new Date(startDate);
+  const end = new Date(2024, 6, 15);
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0];
+};
+
+for (let i = 0; i < 200; i++) {
+  const availableFrom = getCurrentDate();
+  const availableUntil = getRandomFutureDate(availableFrom);
+
+  const randomNameIndex = Math.floor(Math.random() * catNames.length);
+  const randomBreedIndex = Math.floor(Math.random() * catBreeds.length);
+  const randomCityIndex = Math.floor(Math.random() * cities.length);
+
+  mockData.push({
+    id: i + 1,
+    nimi: catNames[randomNameIndex],
+    laji: catBreeds[randomBreedIndex],
+    city: cities[randomCityIndex],
+    omistaja: owners[i % owners.length],
+    lelu: toys[i % toys.length],
+    kuva: `https://source.unsplash.com/featured/?cat,${i}`,
+    liked: Math.random() < 0.5,
+    available_from: availableFrom,
+    available_until: availableUntil,
+  });
+}
+
+console.log(mockData);
 
 function insertMockData() {
   catsDB.get('SELECT COUNT(*) AS count FROM cats', (err, row) => {
@@ -297,6 +321,18 @@ app.put('/api/cats/like/:id', (req, res) => {
     } else {
       res.json({ message: 'Liked status updated successfully' });
     }
+  });
+});
+
+app.get('/api/allcats', (req, res) => {
+  const query = 'SELECT * FROM cats';
+
+  catsDB.all(query, [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
   });
 });
 
