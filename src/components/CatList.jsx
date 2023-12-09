@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -26,11 +26,22 @@ function CatList() {
   const [cats, setCats] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [catToDelete, setCatToDelete] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const city = searchParams.get('city');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
     const fetchCats = async () => {
+      const query = new URLSearchParams();
+      if (city) query.append('city', city);
+      if (startDate) query.append('startDate', startDate);
+      if (endDate) query.append('endDate', endDate);
+
       try {
-        const response = await fetch('/api/cats');
+        const response = await fetch(`/api/cats?${query.toString()}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -42,7 +53,7 @@ function CatList() {
     };
 
     fetchCats();
-  }, []);
+  }, [location.search]);
 
   const handleLikes = async (catId) => {
     const likedCat = cats.find((cat) => cat.id === catId);
@@ -105,7 +116,7 @@ function CatList() {
                 <Typography gutterBottom variant="h5" component="div">
                   {cat.nimi}
                 </Typography>
-                <Typography variant="h6">{cat.sijainti}</Typography>
+                <Typography variant="h6">{cat.city}</Typography>
               </CardContent>
               <CardActions>
                 <Button component={Link} to={'/info/' + cat.id}>

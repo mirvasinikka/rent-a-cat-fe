@@ -5,7 +5,7 @@ import { Box, TextField, Button, Typography, InputLabel } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 
-const initalCatState = { nimi: '', laji: '', sijainti: '', omistaja: '', lelu: '', kuva: '', kuvaNimi: '' };
+const initalCatState = { nimi: '', laji: '', city: '', omistaja: '', lelu: '', kuva: '', kuvaNimi: '' };
 
 function CatForm() {
   const navigate = useNavigate();
@@ -24,12 +24,12 @@ function CatForm() {
   }, [catId, isEditing]);
 
   useEffect(() => {
-    if (cat.nimi && cat.laji && cat.sijainti && cat.omistaja && cat.lelu && cat.kuva) {
+    if (cat.nimi && cat.laji && cat.city && cat.omistaja && cat.lelu && cat.kuva) {
       setTimeout(() => {
         setMessage('');
       }, 5000);
     }
-  }, [cat.nimi, cat.laji, cat.sijainti, cat.omistaja, cat.lelu, cat.kuva]);
+  }, [cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva]);
 
   const muutaCat = (e) => {
     setCat({ ...cat, [e.target.name]: e.target.value });
@@ -42,7 +42,7 @@ function CatForm() {
   };
 
   const handleSubmit = async () => {
-    if (cat.nimi === '' || cat.laji === '' || cat.sijainti === '' || cat.omistaja === '' || cat.lelu === '' || cat.kuva === '') {
+    if (cat.nimi === '' || cat.laji === '' || cat.city === '' || cat.omistaja === '' || cat.lelu === '' || cat.kuva === '') {
       setMessage('Kaikissa kentissä täytyy olla arvot, myös kuva!');
       return;
     }
@@ -95,7 +95,7 @@ function CatForm() {
 
         <TextField label="Kissan nimi" name="nimi" value={cat.nimi} onChange={muutaCat} required fullWidth autoFocus />
         <TextField label="Laji" name="laji" value={cat.laji} onChange={muutaCat} required fullWidth />
-        <TextField label="Sijainti" name="sijainti" value={cat.sijainti} onChange={muutaCat} required fullWidth />
+        <TextField label="city" name="city" value={cat.city} onChange={muutaCat} required fullWidth />
         <TextField label="Omistaja" name="omistaja" value={cat.omistaja} onChange={muutaCat} required fullWidth />
         <TextField label="Lempilelu" name="lelu" value={cat.lelu} onChange={muutaCat} required fullWidth />
 
