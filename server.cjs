@@ -149,8 +149,28 @@ function insertCatMockData() {
 }
 
 const mockUserData = [
-  { username: 'admin', password: 'admin', email: 'admin@example.com', role: 'admin' },
-  { username: 'normal', password: 'normal', email: 'normal@example.com', role: 'normal' },
+  {
+    username: 'admin',
+    firstName: 'John',
+    lastName: 'Doe',
+    address: 'Helsinki, Finland',
+    about: 'I enjoy cats!',
+    avatarUrl: 'https://gravatar.com/avatar/f222a66c5c0db4441e8ef7690fd0302c?s=400&d=robohash&r=x',
+    password: 'admin',
+    email: 'admin@example.com',
+    role: 'admin',
+  },
+  {
+    username: 'normal',
+    firstName: 'Jane',
+    lastName: 'Doe',
+    address: 'Espoo, Finland',
+    about: 'I love cats!',
+    avatarUrl: 'https://gravatar.com/avatar/f222a66c5c0db4441e8ef7690fd0302c?s=400&d=identicon&r=x',
+    password: 'normal',
+    email: 'normal@example.com',
+    role: 'normal',
+  },
 ];
 
 function insertUserMockData() {
@@ -158,7 +178,9 @@ function insertUserMockData() {
     if (err) {
       console.error('Error checking users count:', err.message);
     } else if (row.count === 0) {
-      const insertStmt = usersDB.prepare('INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)');
+      const insertStmt = usersDB.prepare(
+        'INSERT INTO users (username, firstName, lastName, address, about, avatarUrl, password, email, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      );
 
       let completedInsertions = 0;
 
@@ -169,17 +191,20 @@ function insertUserMockData() {
             return;
           }
 
-          insertStmt.run([user.username, hash, user.email, user.role], (insertErr) => {
-            if (insertErr) {
-              console.error('Error inserting mock data:', insertErr.message);
-            }
+          insertStmt.run(
+            [user.username, user.firstName, user.lastName, user.address, user.about, user.avatarUrl, hash, user.email, user.role],
+            (insertErr) => {
+              if (insertErr) {
+                console.error('Error inserting mock data:', insertErr.message);
+              }
 
-            completedInsertions++;
+              completedInsertions++;
 
-            if (completedInsertions === mockUserData.length) {
-              insertStmt.finalize();
-            }
-          });
+              if (completedInsertions === mockUserData.length) {
+                insertStmt.finalize();
+              }
+            },
+          );
         });
       });
     } else {
@@ -194,6 +219,11 @@ usersDB.run(
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE,
+    firstName TEXT,
+    lastName TEXT,
+    address TEXT,
+    about TEXT,
+    avatarUrl TEXT,
     password TEXT,
     email TEXT UNIQUE,
     role TEXT
@@ -272,7 +302,7 @@ app.post('/api/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    req.session.user = { id: user.id, username: user.username, role: user.role };
+    req.session.user = { ...user, password: undefined };
     res.json({ message: 'Login successful' });
   });
 });
@@ -292,6 +322,35 @@ app.get('/api/user/profile', (req, res) => {
   } else {
     res.status(401).json({ error: 'Not authenticated' });
   }
+});
+
+app.put('/api/user/profile', (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  const updatedProfile = req.body;
+
+  usersDB.run(
+    'UPDATE users SET firstName = ?, lastName = ?, address = ?, about = ? WHERE username = ?',
+    [updatedProfile.firstName, updatedProfile.lastName, updatedProfile.address, updatedProfile.about, req.session.user.username],
+    (err) => {
+      if (err) {
+        console.error('Error updating user profile in the database:', err.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+
+      usersDB.get('SELECT * FROM users WHERE username = ?', [req.session.user.username], (err, row) => {
+        if (err) {
+          console.error('Error fetching updated user profile:', err.message);
+          return res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+        req.session.user = row;
+        res.json(row);
+      });
+    },
+  );
 });
 
 app.post('/api/cats', (req, res) => {

@@ -2,7 +2,7 @@ import CatForm from './components/CatForm';
 import CatAppBar from './components/CatAppBar';
 import { blue, indigo, pink } from '@mui/material/colors';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
 import CatList from './components/CatList';
 import CatInfo from './components/CatInfo';
@@ -10,13 +10,14 @@ import Error from './components/Error';
 import LikedCats from './components/LikedCats';
 import Login from './components/Login';
 import Register from './components/Register';
-import RequireAuth from './components/RequireAuth';
+
 import { AuthProvider } from './components/AuthContext';
 import { CssBaseline } from '@mui/material';
 import HomePage from './components/HomePage';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import fi from 'date-fns/locale/fi';
+import UserProfile from './components/UserProfile';
 
 const theme = createTheme({
   palette: {
@@ -28,14 +29,6 @@ const theme = createTheme({
     fontFamily: "'Sometype Mono', 'monospace'",
   },
 });
-
-const ProtectedLayout = () => {
-  return (
-    <RequireAuth>
-      <Outlet />
-    </RequireAuth>
-  );
-};
 
 const router = createBrowserRouter([
   {
@@ -73,6 +66,10 @@ const router = createBrowserRouter([
       {
         path: '/register',
         element: <Register />,
+      },
+      {
+        path: 'profile',
+        element: <UserProfile />,
       },
     ],
   },
