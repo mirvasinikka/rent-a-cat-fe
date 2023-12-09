@@ -16,6 +16,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from '@mui/material';
+import Pagination from '@mui/material/Pagination';
 import InfoIcon from '@mui/icons-material/Info';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -27,6 +28,9 @@ function CatList() {
   const [openDialog, setOpenDialog] = useState(false);
   const [catToDelete, setCatToDelete] = useState(null);
   const location = useLocation();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [catsPerPage] = useState(10);
+  const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -42,6 +46,8 @@ function CatList() {
 
       try {
         const response = await fetch(`/api/cats?${query.toString()}`);
+        // const response = await fetch(`/api/allcats`);
+
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -53,7 +59,9 @@ function CatList() {
     };
 
     fetchCats();
-  }, [location.search]);
+
+    setTotalPages(Math.ceil(cats.length / catsPerPage));
+  }, [location.search, cats.length, catsPerPage]);
 
   const handleLikes = async (catId) => {
     const likedCat = cats.find((cat) => cat.id === catId);
@@ -101,6 +109,14 @@ function CatList() {
     }
   };
 
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+  const indexOfLastCat = currentPage * catsPerPage;
+  const indexOfFirstCat = indexOfLastCat - catsPerPage;
+  const currentCats = cats.slice(indexOfFirstCat, indexOfLastCat);
+
   if (cats.length === 0) {
     return <p>Kissoja ei ole</p>;
   }
@@ -108,7 +124,7 @@ function CatList() {
   return (
     <Box sx={{ marginTop: 3 }}>
       <Grid container spacing={{ xs: 2, md: 5 }} columns={{ xs: 4, sm: 8, md: 18 }}>
-        {cats.map((cat, index) => (
+        {currentCats.map((cat, index) => (
           <Grid item xs={2} sm={4} md={4} key={index}>
             <Card sx={{ maxWidth: 350 }}>
               <CardContent>
@@ -147,6 +163,9 @@ function CatList() {
           </Button>
         </DialogActions>
       </Dialog>
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 3, marginBottom: 10 }}>
+        <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} />
+      </Box>
     </Box>
   );
 }
