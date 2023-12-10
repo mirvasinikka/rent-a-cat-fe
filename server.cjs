@@ -25,6 +25,7 @@ app.use(
 
 const usersDB = new sqlite3.Database('./users.db');
 const catsDB = new sqlite3.Database('./cats.db');
+const likedCatsDB = new sqlite3.Database('./liked-cats.db');
 
 const mockCatData = [];
 const catNames = [
@@ -117,7 +118,7 @@ for (let i = 0; i < 200; i++) {
     omistaja: owners[i % owners.length],
     lelu: toys[i % toys.length],
     kuva: `https://source.unsplash.com/featured/?cat,${i}`,
-    liked: Math.random() < 0.5,
+    likes: 0,
     available_from: availableFrom,
     available_until: availableUntil,
   });
@@ -129,12 +130,12 @@ function insertCatMockData() {
       console.error('Error checking cats count:', err.message);
     } else if (row.count === 0) {
       const insertStmt = catsDB.prepare(
-        'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, liked, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, likes, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       );
 
       mockCatData.forEach((cat) => {
-        const liked = cat.liked ? 1 : 0;
-        insertStmt.run([cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, liked, cat.available_from, cat.available_until], (err) => {
+        const likes = cat.likes ? 1 : 0;
+        insertStmt.run([cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, likes, cat.available_from, cat.available_until], (err) => {
           if (err) {
             console.error('Error inserting mock data:', err.message);
           }
@@ -250,9 +251,9 @@ catsDB.run(
     omistaja TEXT,
     lelu TEXT,
     kuva TEXT,
-    liked INTEGER DEFAULT 0,
+    likes INTEGER DEFAULT 0,
     available_from DATE,
-    available_until DATE  
+    available_until DATE
   )
 `,
   (err) => {
@@ -265,8 +266,36 @@ catsDB.run(
   },
 );
 
+// Create Likes Table
+likedCatsDB.run(
+  `
+  CREATE TABLE IF NOT EXISTS likedCats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    catId INTEGER,
+    userId INTEGER,
+    FOREIGN KEY (catId) REFERENCES cats(id),
+    FOREIGN KEY (userId) REFERENCES users(id)
+  )
+`,
+  (err) => {
+    if (err) {
+      console.error('Error creating likedCats table: ', err.message);
+    } else {
+      console.log('likedCats table created or already exists');
+    }
+  },
+);
+
 app.get('/api/data', (req, res) => {
-  res.json({ message: 'hello, express!' });
+  const query = 'SELECT * FROM likedCats';
+
+  likedCatsDB.all(query, [], (err, rows) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
 });
 
 app.post('/api/register', async (req, res) => {
@@ -369,24 +398,56 @@ app.post('/api/cats', (req, res) => {
   );
 });
 
-app.get('/api/cats', (req, res) => {
+app.get('/api/cats', async (req, res) => {
   const { city, startDate, endDate } = req.query;
+  const userId = req.session.user?.id;
 
-  if (!city) {
-    res.status(400).json({ error: 'City parameter is required' });
-    return;
-  }
-  const query = 'SELECT * FROM cats WHERE city = ? AND available_from <= ? AND available_until >= ?';
+  try {
+    let catsQuery;
+    let likedCatsQuery;
+    let catsRows;
+    let likedCatsRows;
 
-  catsDB.all(query, [city, startDate, endDate], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
+    if (!city) {
+      catsQuery = 'SELECT * FROM cats';
+      likedCatsQuery = 'SELECT catId FROM likedCats WHERE userId = ?';
+
+      catsRows = await queryDatabase(catsDB, catsQuery);
+      likedCatsRows = await queryDatabase(likedCatsDB, likedCatsQuery, [userId]);
+    } else {
+      catsQuery = 'SELECT * FROM cats WHERE city = ? AND available_from <= ? AND available_until >= ?';
+      likedCatsQuery = 'SELECT catId FROM likedCats WHERE userId = ?';
+
+      catsRows = await queryDatabase(catsDB, catsQuery, [city, startDate, endDate]);
+      likedCatsRows = await queryDatabase(likedCatsDB, likedCatsQuery, [userId]);
     }
 
-    res.json(rows);
-  });
+    const likedCatsIds = likedCatsRows.map((row) => row.catId);
+
+    // Combine the results
+    const combinedRows = catsRows.map((cat) => ({
+      ...cat,
+      likes: likedCatsIds.includes(cat.id) ? 1 : 0,
+    }));
+
+    res.json(combinedRows);
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
+
+// Helper function for querying the database
+function queryDatabase(db, query, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(query, params, (err, rows) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(rows);
+    });
+  });
+}
 
 app.get('/api/cats/:id', (req, res) => {
   const id = req.params.id;
@@ -434,24 +495,86 @@ app.delete('/api/cats/:id', (req, res) => {
   });
 });
 
-app.put('/api/cats/like/:id', (req, res) => {
-  const id = req.params.id;
-  const liked = req.body.liked;
+app.put('/api/cats/like/:id', async (req, res) => {
+  const catId = req.params.id;
+  const userId = req.session.user?.id || 1;
 
-  const likedInt = liked ? 1 : 0;
+  const queryCheckLike = 'SELECT * FROM likedCats WHERE catId = ? AND userId = ?';
+  const queryInsertLike = 'INSERT INTO likedCats (catId, userId) VALUES (?, ?)';
+  const queryRemoveLike = 'DELETE FROM likedCats WHERE catId = ? AND userId = ?';
+  const queryUpdateLikes = 'UPDATE cats SET likes = likes + ? WHERE id = ?';
 
-  catsDB.run('UPDATE cats SET liked = ? WHERE id = ?', [likedInt, id], function (err) {
+  likedCatsDB.get(queryCheckLike, [catId, userId], async (err, existingLike) => {
     if (err) {
-      res.status(400).json({ error: err.message });
+      res.status(500).json({ error: err.message });
       return;
     }
 
-    if (this.changes === 0) {
-      res.status(404).json({ error: 'Cat not found' });
+    if (existingLike) {
+      likedCatsDB.run(queryRemoveLike, [catId, userId], (removeErr) => {
+        if (removeErr) {
+          res.status(500).json({ error: removeErr.message });
+          return;
+        }
+
+        catsDB.run(queryUpdateLikes, [-1, catId], (updateErr) => {
+          if (updateErr) {
+            res.status(500).json({ error: updateErr.message });
+            return;
+          }
+
+          res.json({ message: 'Cat unliked successfully' });
+        });
+      });
     } else {
-      res.json({ message: 'Liked status updated successfully' });
+      likedCatsDB.run(queryInsertLike, [catId, userId], (insertErr) => {
+        if (insertErr) {
+          res.status(500).json({ error: insertErr.message });
+          return;
+        }
+
+        catsDB.run(queryUpdateLikes, [1, catId], (updateErr) => {
+          if (updateErr) {
+            res.status(500).json({ error: updateErr.message });
+            return;
+          }
+
+          res.json({ message: 'Cat liked successfully' });
+        });
+      });
     }
   });
+});
+
+app.get('/api/user/liked-cats', (req, res) => {
+  const userId = req.session.user.id;
+
+  try {
+    const catsQuery = 'SELECT * FROM cats';
+    const likedCatsQuery = 'SELECT * FROM likedCats WHERE userId = ?';
+
+    catsDB.all(catsQuery, [], (catsErr, catsRows) => {
+      if (catsErr) {
+        res.status(500).json({ error: catsErr.message });
+        return;
+      }
+
+      likedCatsDB.all(likedCatsQuery, [userId], (likedCatsErr, likedCatsRows) => {
+        if (likedCatsErr) {
+          res.status(500).json({ error: likedCatsErr.message });
+          return;
+        }
+
+        const likedCats = catsRows.filter((cat) => {
+          return likedCatsRows.some((lc) => lc.catId === cat.id);
+        });
+
+        res.json(likedCats);
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 app.get('/api/allcats', (req, res) => {

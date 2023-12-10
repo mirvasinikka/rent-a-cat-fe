@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-import { Typography, Box, Link, Button } from '@mui/material';
+import { Typography, Box, Button } from '@mui/material';
+
+function NavigateBackToButton() {
+  const navigate = useNavigate();
+  return (
+    <Button variant="contained" onClick={() => navigate('/cats')} size="large">
+      Back to Cats
+    </Button>
+  );
+}
 
 function CatInfo() {
   const [cat, setCat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+
   let { id } = useParams();
 
   useEffect(() => {
@@ -37,9 +46,7 @@ function CatInfo() {
     return (
       <Box>
         <p>Error: {error}</p>
-        <Button component={Link} onClick={() => navigate('/')}>
-          Back to the cats
-        </Button>
+        <NavigateBackToButton />
       </Box>
     );
   }
@@ -48,9 +55,7 @@ function CatInfo() {
     return (
       <Box>
         <p>Cat doesn't exist, please try another cat. Thank you!</p>
-        <Button component={Link} onClick={() => navigate('/')}>
-          Back to the cats
-        </Button>
+        <NavigateBackToButton />
       </Box>
     );
   }
@@ -73,9 +78,8 @@ function CatInfo() {
       <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
         <Typography variant="h6">Lempi lelu: </Typography> <Typography variant="h6"> {cat.lelu}</Typography>
       </Box>
-      <Button variant="secondary" component={Link} onClick={() => navigate('/')}>
-        Back to cats
-      </Button>
+
+      <NavigateBackToButton />
     </Box>
   );
 }

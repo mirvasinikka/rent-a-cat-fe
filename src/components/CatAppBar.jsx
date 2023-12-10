@@ -40,9 +40,9 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 function CatAppBar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout, isLoading } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [user, setUser] = useState();
+
   const navigate = useNavigate();
 
   const handleMenu = (event) => {
@@ -51,16 +51,7 @@ function CatAppBar() {
 
   const handleLogout = async () => {
     logout();
-    try {
-      await fetch('/api/user/logout', {
-        method: 'POST',
-      });
-      navigate('/');
-    } catch (error) {
-      console.error('Failed to logout', error);
-    } finally {
-      handleClose();
-    }
+    handleClose();
   };
 
   const handleProfile = () => {
@@ -77,20 +68,6 @@ function CatAppBar() {
     setAnchorEl(null);
   };
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data);
-      } else {
-        console.error('Failed to fetch user profile');
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -98,8 +75,7 @@ function CatAppBar() {
           <Typography
             variant="h5"
             noWrap
-            component={Link}
-            to="/"
+            onClick={() => navigate('/cats')}
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -108,6 +84,7 @@ function CatAppBar() {
               letterSpacing: '.3rem',
               color: 'inherit',
               textDecoration: 'none',
+              cursor: 'pointer',
             }}
           >
             <PetsIcon fontSize="large" sx={{ marginRight: 2 }} />
@@ -123,7 +100,11 @@ function CatAppBar() {
               </Button>
               <IconButton onClick={handleMenu}>
                 <StyledBadge overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} variant="dot">
-                  <Avatar alt={user?.username} src={user?.avatarUrl} sx={{ width: 50, height: 50 }} />
+                  {isLoading ? (
+                    <Avatar sx={{ width: 50, height: 50 }} />
+                  ) : (
+                    <Avatar alt={user?.username} src={user?.avatarUrl} sx={{ width: 50, height: 50 }} />
+                  )}
                 </StyledBadge>
               </IconButton>
               <Menu id="menu-appbar" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ marginTop: 1 }}>

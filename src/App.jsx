@@ -2,7 +2,7 @@ import CatForm from './components/CatForm';
 import CatAppBar from './components/CatAppBar';
 import { blue, indigo, pink } from '@mui/material/colors';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 
 import CatList from './components/CatList';
 import CatInfo from './components/CatInfo';
@@ -18,6 +18,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import fi from 'date-fns/locale/fi';
 import UserProfile from './components/UserProfile';
+import RequireAuth from './components/RequireAuth';
 
 const theme = createTheme({
   palette: {
@@ -30,6 +31,14 @@ const theme = createTheme({
   },
 });
 
+const ProtectedLayout = () => {
+  return (
+    <RequireAuth>
+      <Outlet />
+    </RequireAuth>
+  );
+};
+
 const router = createBrowserRouter([
   {
     element: <CatAppBar />,
@@ -39,25 +48,14 @@ const router = createBrowserRouter([
         path: '/cats',
         element: <CatList />,
       },
-      {
-        path: 'add',
-        element: <CatForm />,
-      },
+
       {
         path: '/',
         element: <HomePage />,
       },
       {
-        path: 'edit/:id',
-        element: <CatForm />,
-      },
-      {
         path: 'info/:id',
         element: <CatInfo />,
-      },
-      {
-        path: 'likes',
-        element: <LikedCats />,
       },
       {
         path: '/login',
@@ -68,8 +66,25 @@ const router = createBrowserRouter([
         element: <Register />,
       },
       {
-        path: 'profile',
-        element: <UserProfile />,
+        element: <ProtectedLayout />,
+        children: [
+          {
+            path: 'likes',
+            element: <LikedCats />,
+          },
+          {
+            path: 'add',
+            element: <CatForm />,
+          },
+          {
+            path: 'edit/:id',
+            element: <CatForm />,
+          },
+          {
+            path: 'profile',
+            element: <UserProfile />,
+          },
+        ],
       },
     ],
   },
