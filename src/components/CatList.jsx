@@ -77,7 +77,7 @@ function CatList() {
   };
 
   return (
-    <Box sx={{ marginTop: 3, width: '100%', padding: 6 }}>
+    <Box sx={{ mt: 4, mb: 4, width: '100%', pl: 6, pr: 6 }}>
       <CatSearch compact />
       {cats.length === 0 ? (
         <div>

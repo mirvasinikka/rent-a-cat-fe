@@ -1,12 +1,23 @@
-import { Box, Button, Snackbar, Typography } from '@mui/material';
+import { Alert, Box, Button, Divider, Snackbar, Typography } from '@mui/material';
 import { useEffect, useState, useMemo } from 'react';
 import { DatePicker } from '@mui/x-date-pickers';
+import { useAuth } from './AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Paper from '@mui/material/Paper';
 
-function CatRent() {
+
+function CatRent({ price, id }) {
   const [formSubmitted, setFormSubmitted] = useState(false);
-
   const [rentStartDate, setRentStartDate] = useState(null);
   const [rentEndDate, setRentEndDate] = useState(null);
+
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const formatCurrency = (number) => {
+    return new Intl.NumberFormat('fi-FI', { style: 'currency', currency: 'EUR' }).format(number);
+  };
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -37,17 +48,20 @@ function CatRent() {
   const handleFormSubmit = async (event) => {
     event.preventDefault();
 
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } });
+    }
+
     try {
       const response = await fetch('/api/rent-cat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        /** TODO: Figure out how to get the userId */
-        body: JSON.stringify({ catId: id, userId: id, usersName, userEmail, rentStartDate, rentEndDate }),
+        body: JSON.stringify({ catId: id, userId: user.id, usersName: user.userName, userEmail: user.email, rentStartDate, rentEndDate }),
       });
 
       if (response.ok) {
         setFormSubmitted(true);
-        setTimeout(() => navigate('/'), 3000);
+        setTimeout(() => navigate('/rentals'), 3000);
       } else {
         throw new Error('Failed to submit form');
       }
@@ -56,35 +70,74 @@ function CatRent() {
     }
   };
 
+  const serviseFee = 10;
+  const rentPrice = price * rentalDays;
+  const endPrice = rentPrice + serviseFee;
+
   return (
     <Box sx={{ width: '50%' }}>
-      <form onSubmit={handleFormSubmit}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 2, marginRight: 10 }}>
-          <DatePicker
-            label="Rental Start Date"
-            inputFormat="dd.MM.yyyy"
-            value={rentStartDate}
-            onChange={(newDate) => {
-              setRentStartDate(newDate);
-            }}
-          />
-          <DatePicker
-            label="Rental End Date"
-            inputFormat="dd.MM.yyyy"
-            value={rentEndDate}
-            onChange={(newDate) => {
-              setRentEndDate(newDate);
-            }}
-            minDate={rentStartDate}
-          />
-          {rentalDays > 0 && <Typography variant="body1">Number of rental days: {rentalDays}</Typography>}
-          {rentalDays > 0 && <Typography variant="body1">Price of the rent: {rentalDays}€</Typography>}
-        </Box>
-        <Button type="submit" variant="contained" color="primary">
-          Rent
-        </Button>
-      </form>
-      <Snackbar open={formSubmitted} autoHideDuration={6000} onClose={() => setFormSubmitted(false)} message="Renting submitted successfully!" />
+      <Paper elevation={3} sx={{ padding: 2, borderRadius: '8px', width: '100%' }}>
+        {rentalDays > 0 && (
+          <Typography variant="h6" sx={{ marginTop: 1, marginBottom: 3, fontWeight: 'bold' }}>
+            {formatCurrency(price)}/day
+          </Typography>
+        )}
+        <form onSubmit={handleFormSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <DatePicker
+              sx={{ width: '100%' }}
+              label="Rental Start Date"
+              inputFormat="dd.MM.yyyy"
+              value={rentStartDate}
+              onChange={(newDate) => {
+                setRentStartDate(newDate);
+              }}
+            />
+            <DatePicker
+              sx={{ width: '100%' }}
+              label="Rental End Date"
+              inputFormat="dd.MM.yyyy"
+              value={rentEndDate}
+              onChange={(newDate) => {
+                setRentEndDate(newDate);
+              }}
+              minDate={rentStartDate}
+            />
+          </Box>
+          <Button type="submit" variant="contained" color="primary" sx={{ marginTop: 2, width: '100%' }}>
+            Rent
+          </Button>
+
+          {rentalDays > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+              <Typography variant="body1">
+                {formatCurrency(price)} x {rentalDays} days
+              </Typography>
+              <Typography variant="body1">{formatCurrency(rentPrice)}</Typography>
+            </Box>
+          )}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+            <Typography variant="body1">Service fee:</Typography>
+            <Typography variant="body1">{formatCurrency(serviseFee)}</Typography>
+          </Box>
+          <Divider sx={{ my: 2 }} />
+          {rentalDays > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 1 }}>
+              <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                Price of the rent:
+              </Typography>
+              <Typography sx={{ fontWeight: 'bold' }} variant="body1">
+                {formatCurrency(endPrice)}
+              </Typography>
+            </Box>
+          )}
+        </form>
+        {formSubmitted && (
+          <Alert severity="success" sx={{ marginTop: 2 }}>
+            Cat Rented successfully!
+          </Alert>
+        )}
+      </Paper>
     </Box>
   );
 }

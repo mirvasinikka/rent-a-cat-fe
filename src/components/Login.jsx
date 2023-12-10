@@ -1,6 +1,6 @@
 import { TextField, Button, Container, Alert } from '@mui/material';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 function Login() {
@@ -8,6 +8,10 @@ function Login() {
   const [password, setPassword] = useState('');
   const [message, setMesage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state || '/';
+
   const { login } = useAuth();
 
   const handleSubmit = async (event) => {
@@ -24,7 +28,7 @@ function Login() {
       if (response.ok) {
         console.log('login was successfull');
         login();
-        navigate('/');
+        navigate(from.pathname + from.search);
       } else {
         const data = await response.json();
         setMesage('Login failed:' + data.error);

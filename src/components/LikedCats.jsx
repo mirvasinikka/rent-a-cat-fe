@@ -28,7 +28,7 @@ function LikedCats() {
   return (
     <>
       <Typography variant="h3" gutterBottom sx={{ marginTop: 8, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2 }}>
-        <Badge badgeContent={cats.length} color="secondary" showZero>
+        <Badge badgeContent={cats.length} color="primary" showZero>
           Liked Cats <FavoriteIcon fontSize="xLarge" sx={{ color: 'red' }} />
         </Badge>
       </Typography>

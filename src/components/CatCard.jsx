@@ -1,4 +1,4 @@
-import { Card, CardContent, CardMedia, IconButton, Snackbar, Typography } from '@mui/material';
+import { Card, CardContent, CardMedia, IconButton, Snackbar, Typography, Box } from '@mui/material';
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
@@ -72,12 +72,23 @@ function CatCard({ cat, handleLikes, compact = false }) {
         )}
         <CardContent sx={{ padding: 0.8 }}>
           <CardMedia sx={{ height: 0, paddingTop: '100%', marginBottom: 2, position: 'relative' }} image={cat.kuva} title={'Cat name ' + cat.nimi} />
-          <Typography variant="h6" sx={{ fontWeight: 'bold', marginBottom: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {cat.nimi}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {cat.city}
-          </Typography>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {cat.nimi}
+              <Typography variant="body1" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mt: 1 }}>
+                {cat.city}
+              </Typography>
+            </Typography>
+            <Box sx={{ backgroundColor: '#76bbc2', padding: 1, borderRadius: 4, marginRight: 2 }}>
+              <Typography variant="h5" sx={{ color: 'white' }}>
+                {cat.price}
+              </Typography>
+              <Typography variant="h7" sx={{ color: 'white' }}>
+                €/day
+              </Typography>
+            </Box>
+          </Box>
         </CardContent>
       </Card>
 

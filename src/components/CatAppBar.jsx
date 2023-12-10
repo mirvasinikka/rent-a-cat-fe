@@ -6,9 +6,10 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import PetsIcon from '@mui/icons-material/Pets';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -64,6 +65,11 @@ function CatAppBar() {
     handleClose();
   };
 
+  const handleRentals = () => {
+    navigate('/rentals');
+    handleClose();
+  };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
@@ -75,7 +81,7 @@ function CatAppBar() {
           <Typography
             variant="h5"
             noWrap
-            onClick={() => navigate('/cats')}
+            onClick={() => navigate('/')}
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -120,6 +126,13 @@ function CatAppBar() {
                     <FavoriteIcon sx={{ marginRight: 1 }} />
                   </ListItemIcon>
                   <ListItemText sx={{ paddingLeft: 2, paddingRight: 2 }}>Likes</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={handleRentals} sx={{ padding: 2 }}>
+                  <ListItemIcon>
+                    <CalendarMonthIcon sx={{ marginRight: 1 }} />
+                  </ListItemIcon>
+                  <ListItemText sx={{ paddingLeft: 2, paddingRight: 2 }}>Rentals</ListItemText>
                 </MenuItem>
                 <Divider />
                 <MenuItem onClick={handleLogout} sx={{ padding: 2 }}>

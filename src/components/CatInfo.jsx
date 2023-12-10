@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Box, Button, Link } from '@mui/material';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-
+import { Typography, Box, Button, Grid } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PetsIcon from '@mui/icons-material/Pets';
+import PersonIcon from '@mui/icons-material/Person';
+import SportsTennisIcon from '@mui/icons-material/SportsTennis';
+import SavingsIcon from '@mui/icons-material/Savings';
 import CatRent from './CatRent';
 
 function NavigateBackToCats() {
@@ -66,34 +70,44 @@ function CatInfo() {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', marginTop: 2 }}>
-      <Box sx={{ width: '50%', img: { margin: 2, width: 300, height: 450, marginLeft: 30 } }}>
-        <img src={cat.kuva} alt={cat.nimi} />
-        <Box sx={{ display: 'flex', gap: 1, marginTop: 2, marginLeft: 30 }}>
-          <Typography variant="h6">Nimi: </Typography> <Typography variant="h6"> {cat.nimi}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, marginLeft: 30 }}>
-          <Typography variant="h6">Kaupunki: </Typography> <Typography variant="h6"> {cat.city}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, marginLeft: 30 }}>
-          <Typography variant="h6">Laji: </Typography> <Typography variant="h6"> {cat.laji}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, marginLeft: 30 }}>
-          <Typography variant="h6">Omistaja: </Typography> <Typography variant="h6"> {cat.omistaja}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, marginLeft: 30 }}>
-          <Typography variant="h6">Lempi lelu: </Typography> <Typography variant="h6"> {cat.lelu}</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1, marginBottom: 2, marginLeft: 30 }}>
-          <Typography variant="h6">Hinta: </Typography>
-          <Typography variant="h6"> {formatCurrency(cat.price)} per day</Typography>
-        </Box>
-        <Button variant="secondary" component={Link} onClick={() => navigate('/')}>
-          Back to cats
-        </Button>
-      </Box>
-      <CatRent />
-    </Box>
+      <Grid container spacing={2} sx={{ marginTop: 2, padding: 3 }}>
+        <Grid item xs={12} md={6}>
+          <Box sx={{ img: { margin: 2, width: '100%', maxWidth: 500, maxHeight: 600, marginLeft: 5 } }}>
+            <img src={cat.kuva} alt={cat.nimi} style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
+            <Box sx={{ display: 'flex', gap: 1, marginTop: 2, marginBottom: 2, marginLeft: 5 }}>
+              <Typography  variant="h3">
+                {cat.nimi}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginLeft: 5 }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <LocationOnIcon />
+                <Typography variant="h6">{cat.city}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <PetsIcon />
+                <Typography variant="h6">{cat.laji}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <PersonIcon />
+                <Typography variant="h6">{cat.omistaja}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <SportsTennisIcon />
+                <Typography variant="h6">{cat.lelu}</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <SavingsIcon />
+                <Typography variant="h6">{formatCurrency(cat.price)} per day</Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Grid>
+
+        <Grid item xs={12} md={6}>
+          <CatRent id={cat.id} price={cat.price} />
+        </Grid>
+      </Grid>
   );
 }
 

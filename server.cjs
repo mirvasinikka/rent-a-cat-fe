@@ -303,13 +303,14 @@ rentDB.run(
   CREATE TABLE IF NOT EXISTS rentals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     catId INTEGER,
+    userId INTEGER,
     usersName TEXT,
     userEmail TEXT,
     rentStartDate TEXT,
     rentEndDate TEXT,
     price INTEGER,
     FOREIGN KEY (catId) REFERENCES cats(id),
-    FOREIGN KEY (usersName) REFERENCES users(userName)
+    FOREIGN KEY (userId) REFERENCES users(id)
   )
 `,
   (err) => {
@@ -624,7 +625,6 @@ app.get('/api/allcats', (req, res) => {
   });
 });
 
-// is this needed anymore?!
 app.post('/api/rent-cat', (req, res) => {
   const { catId, usersName, userEmail, rentStartDate, rentEndDate } = req.body;
 
@@ -639,6 +639,49 @@ app.post('/api/rent-cat', (req, res) => {
 
     res.status(200).json({ message: 'Cat rental successfully recorded', rentalId: this.lastID });
   });
+});
+
+app.get('/api/rentals', (req, res) => {
+  const userId = req.session.user.id;
+
+  try {
+    const rentalsQuery = 'SELECT * FROM rentals WHERE userId = ?';
+
+    rentDB.all(rentalsQuery, [userId], (rentalsErr, rentalsRows) => {
+      if (rentalsErr) {
+        res.status(500).json({ error: rentalsErr.message });
+        return;
+      }
+
+      res.json(rentalsRows);
+
+      if (rentalsRows.length === 0) {
+        return res.json([]);
+      }
+
+      const catIds = rentalsRows.map((rental) => rental.catId);
+
+      const catsQuery = `SELECT * FROM cats WHERE id IN (${catIds.join(',')})`;
+
+      catsDB.all(catsQuery, [], (catsErr, catsRows) => {
+        if (catsErr) {
+          res.status(500).json({ error: catsErr.message });
+          return;
+        }
+
+        const combinedData = rentalsRows.map((rental) => {
+          return {
+            ...rental,
+            catDetails: catsRows.find((cat) => cat.id === rental.catId) || {},
+          };
+        });
+
+        res.json(combinedData);
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
 });
 
 app.listen(port, () => {

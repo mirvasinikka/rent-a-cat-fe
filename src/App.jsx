@@ -19,6 +19,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import fi from 'date-fns/locale/fi';
 import UserProfile from './components/UserProfile';
 import RequireAuth from './components/RequireAuth';
+import RentList from './components/RentList';
 
 const theme = createTheme({
   palette: {
@@ -77,12 +78,20 @@ const router = createBrowserRouter([
             element: <CatForm />,
           },
           {
+            path: 'rentals',
+            element: <RentList />,
+          },
+          {
             path: 'edit/:id',
             element: <CatForm />,
           },
           {
             path: 'profile',
             element: <UserProfile />,
+          },
+          {
+            path: 'rentals',
+            element: <RentList />,
           },
         ],
       },
