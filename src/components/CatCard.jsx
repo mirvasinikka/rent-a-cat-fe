@@ -3,11 +3,12 @@ import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlin
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 function CatCard({ cat, handleLikes, compact = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isAuthenticated } = useAuth();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -19,6 +20,19 @@ function CatCard({ cat, handleLikes, compact = false }) {
     } else {
       setSnackbarOpen(true);
     }
+  };
+
+  const handleInfo = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const startRentDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    const queryParams = new URLSearchParams({
+      startDate: startRentDate,
+      endDate: endDate,
+    }).toString();
+
+    return navigate(`/info/${cat.id}?${queryParams}`);
   };
 
   const handleCloseSnackbar = () => {
@@ -38,7 +52,7 @@ function CatCard({ cat, handleLikes, compact = false }) {
             transform: 'scale(1.05)',
           },
         }}
-        onClick={() => navigate('/info/' + cat.id)}
+        onClick={handleInfo}
       >
         {!compact && (
           <>

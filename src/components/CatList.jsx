@@ -1,21 +1,19 @@
-import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import { Box, CircularProgress, Grid, Pagination } from '@mui/material';
-
-import CatCard from './CatCard';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import CatSearch from './CatSearch';
+import CatCard from './CatCard';
 
 function CatList() {
   const [cats, setCats] = useState([]);
-  const [openDialog, setOpenDialog] = useState(false);
-  const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [catsPerPage] = useState(12);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setLoading] = useState(true);
 
+  const location = useLocation();
   const indexOfLastCat = currentPage * catsPerPage;
   const indexOfFirstCat = indexOfLastCat - catsPerPage;
   const currentCats = cats.slice(indexOfFirstCat, indexOfLastCat);
@@ -34,7 +32,6 @@ function CatList() {
 
       try {
         const response = await fetch(`/api/cats?${query.toString()}`);
-        // const response = await fetch(`/api/allcats`);
 
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -55,10 +52,6 @@ function CatList() {
   if (isLoading) {
     return <CircularProgress />;
   }
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -83,23 +76,15 @@ function CatList() {
     }
   };
 
-  if (cats.length === 0) {
-    return (
-      <div>
-        <p>Kissoja ei ole</p>
-      </div>
-    );
-  }
-
   return (
-    <Box sx={{ marginTop: 3, width: '100%', padding: 2 }}>
+    <Box sx={{ marginTop: 3, width: '100%', padding: 6 }}>
       <CatSearch compact />
       {cats.length === 0 ? (
         <div>
           <p>Kissoja ei ole</p>
         </div>
       ) : (
-        <>
+        <Box sx={{ mt: 2 }}>
           <Grid container spacing={3}>
             {currentCats.map((cat, index) => (
               <Grid item key={index} xs={6} sm={6} md={4} lg={3}>
@@ -111,7 +96,7 @@ function CatList() {
           <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 3, marginBottom: 10 }}>
             <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} size="large" color="primary" />
           </Box>
-        </>
+        </Box>
       )}
     </Box>
   );

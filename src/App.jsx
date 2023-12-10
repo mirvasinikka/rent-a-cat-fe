@@ -1,6 +1,6 @@
 import CatForm from './components/CatForm';
 import CatAppBar from './components/CatAppBar';
-import { blue, indigo, pink } from '@mui/material/colors';
+import { indigo, grey } from '@mui/material/colors';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 
@@ -22,9 +22,9 @@ import RequireAuth from './components/RequireAuth';
 
 const theme = createTheme({
   palette: {
-    primary: { main: pink[200], contrastText: '#FFFFFF' },
-    secondary: { main: blue[400], contrastText: '#FFFFFF' },
-    text: { primary: indigo[900], secondary: indigo[400] },
+    primary: { main: '#0c5057', contrastText: '#FFFFFF' },
+    secondary: { main: grey[900], contrastText: '#000000' },
+    text: { primary: indigo[900] },
   },
   typography: {
     fontFamily: "'Sometype Mono', 'monospace'",
