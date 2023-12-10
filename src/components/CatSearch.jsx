@@ -73,7 +73,7 @@ function CatSearch({ compact = false, sx }) {
   };
 
   const citySize = compact ? 4 : 12;
-  const dateSize = compact ? 3 : 6;
+  const dateSize = compact ? 2 : 6;
   const buttonSize = compact ? 2 : 12;
 
   return (
