@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { useAuth } from './AuthContext';
 
 function RentList() {
   const [rentals, setRentals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchRentals = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/rentals');
+        const response = await fetch(`/api/rentals?userId=${user.id}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -25,7 +27,7 @@ function RentList() {
     };
 
     fetchRentals();
-  }, []);
+  }, [user.id]);
 
   if (loading) {
     return <Typography>Loading rentals...</Typography>;
@@ -45,6 +47,7 @@ function RentList() {
           <TableHead>
             <TableRow>
               <TableCell>Cat ID</TableCell>
+              <TableCell align="right">Cat Name</TableCell>
               <TableCell align="right">Start Date</TableCell>
               <TableCell align="right">End Date</TableCell>
               <TableCell align="right">Price</TableCell>
@@ -54,9 +57,10 @@ function RentList() {
             {rentals.map((rental) => (
               <TableRow key={rental.id}>
                 <TableCell>{rental.catId}</TableCell>
+                <TableCell align="right">{rental.catDetails.name}</TableCell>
                 <TableCell align="right">{rental.rentStartDate}</TableCell>
                 <TableCell align="right">{rental.rentEndDate}</TableCell>
-                <TableCell align="right">{rental.price}</TableCell>
+                <TableCell align="right">{rental.catDetails.price}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -3,15 +3,17 @@ import { Badge, Box, Button, Grid, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import CatCard from './CatCard';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { useAuth } from './AuthContext';
 
 function LikedCats() {
   const [cats, setCats] = useState([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchCats = async () => {
       try {
-        const response = await fetch('/api/user/liked-cats');
+        const response = await fetch(`/api/user/liked-cats?userId=${user.id}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -23,7 +25,7 @@ function LikedCats() {
     };
 
     fetchCats();
-  }, []);
+  }, [user.id]);
 
   return (
     <>

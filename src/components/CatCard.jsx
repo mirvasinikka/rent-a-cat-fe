@@ -2,7 +2,7 @@ import { Card, CardContent, CardMedia, IconButton, Snackbar, Typography, Box } f
 import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
@@ -27,10 +27,13 @@ function CatCard({ cat, handleLikes, compact = false }) {
     const startRentDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    const queryParams = new URLSearchParams({
-      startDate: startRentDate,
-      endDate: endDate,
-    }).toString();
+    const queryParams =
+      startRentDate && endDate
+        ? new URLSearchParams({
+            startDate: startRentDate,
+            endDate: endDate,
+          }).toString()
+        : '';
 
     return navigate(`/info/${cat.id}?${queryParams}`);
   };
@@ -71,11 +74,11 @@ function CatCard({ cat, handleLikes, compact = false }) {
           </>
         )}
         <CardContent sx={{ padding: 0.8 }}>
-          <CardMedia sx={{ height: 0, paddingTop: '100%', marginBottom: 2, position: 'relative' }} image={cat.kuva} title={'Cat name ' + cat.nimi} />
+          <CardMedia sx={{ height: 0, paddingTop: '100%', marginBottom: 2, position: 'relative' }} image={cat.image} title={'Cat name ' + cat.name} />
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <Typography variant="h5" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {cat.nimi}
+              {cat.name}
               <Typography variant="body1" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mt: 1 }}>
                 {cat.city}
               </Typography>

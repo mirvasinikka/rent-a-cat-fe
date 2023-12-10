@@ -1,6 +1,6 @@
 import { TextField, Button, Container, Alert } from '@mui/material';
 import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 function Login() {
@@ -8,14 +8,12 @@ function Login() {
   const [password, setPassword] = useState('');
   const [message, setMesage] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const from = location.state || '/';
 
   const { login } = useAuth();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    login();
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -27,8 +25,9 @@ function Login() {
 
       if (response.ok) {
         console.log('login was successfull');
-        login();
-        navigate(from.pathname + from.search);
+        const { user } = await response.json();
+        login(user);
+        navigate('/');
       } else {
         const data = await response.json();
         setMesage('Login failed:' + data.error);
@@ -68,9 +67,8 @@ function Login() {
         <Button type="submit" fullWidth variant="contained" color="primary" sx={{ marginTop: 2 }}>
           Sign In
         </Button>
-
         <Button component={Link} to="/register" fullWidth variant="contained" color="primary" sx={{ marginTop: 2 }}>
-          Register Form
+          Register
         </Button>
       </form>
     </Container>

@@ -4,7 +4,6 @@ const bcrypt = require('bcrypt');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const helmet = require('helmet');
-const session = require('express-session');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -13,15 +12,6 @@ app.use(bodyParser.json());
 app.use(cors());
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use('/assets', express.static('public/assets'));
-
-app.use(
-  session({
-    secret: 'cat-a-rent',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false },
-  }),
-);
 
 const usersDB = new sqlite3.Database('./users.db');
 const catsDB = new sqlite3.Database('./cats.db');
@@ -90,7 +80,7 @@ const catNames = [
 const catBreeds = ['Scottish long hair', 'Persian', 'Thai Siamese'];
 const cities = ['Helsinki', 'Espoo', 'Oulu', 'Vantaa', 'Tampere', 'Turku', 'Rovaniemi'];
 const owners = ['Mirva', 'Pekka', 'Vilma', 'Jussi', 'Ida', 'Hilla', 'Tiina', 'Matti', 'Juhani'];
-const toys = ['pallo', 'naru', 'hiiri', 'aktivointi-lelu', 'raapimapuu'];
+const toys = ['pallo', 'naru', 'hiiri', 'aktivointi-toy', 'raapimapuu'];
 
 const getCurrentDate = () => {
   const today = new Date();
@@ -118,12 +108,12 @@ for (let i = 0; i < 200; i++) {
 
   mockCatData.push({
     id: i + 1,
-    nimi: catNames[randomNameIndex],
-    laji: catBreeds[randomBreedIndex],
+    name: catNames[randomNameIndex],
+    breed: catBreeds[randomBreedIndex],
     city: cities[randomCityIndex],
-    omistaja: owners[i % owners.length],
-    lelu: toys[i % toys.length],
-    kuva: `https://source.unsplash.com/featured/?cat,${i}`,
+    owner: owners[i % owners.length],
+    toy: toys[i % toys.length],
+    image: `https://source.unsplash.com/featured/?cat,${i}`,
     likes: 0,
     available_from: availableFrom,
     available_until: availableUntil,
@@ -137,13 +127,13 @@ function insertCatMockData() {
       console.error('Error checking cats count:', err.message);
     } else if (row.count === 0) {
       const insertStmt = catsDB.prepare(
-        'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, likes, available_from, available_until, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO cats (name, breed, city, owner, toy, image, likes, available_from, available_until, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       );
 
       mockCatData.forEach((cat) => {
         const likes = cat.likes ? 1 : 0;
         insertStmt.run(
-          [cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, likes, cat.available_from, cat.available_until, cat.price],
+          [cat.name, cat.breed, cat.city, cat.owner, cat.toy, cat.image, likes, cat.available_from, cat.available_until, cat.price],
           (err) => {
             if (err) {
               console.error('Error inserting mock data:', err.message);
@@ -255,12 +245,12 @@ catsDB.run(
   `
   CREATE TABLE IF NOT EXISTS cats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nimi TEXT,
-    laji TEXT,
+    name TEXT,
+    breed TEXT,
     city TEXT,
-    omistaja TEXT,
-    lelu TEXT,
-    kuva TEXT,
+    owner TEXT,
+    toy TEXT,
+    image TEXT,
     likes INTEGER DEFAULT 0,
     available_from DATE,
     available_until DATE, 
@@ -345,11 +335,9 @@ app.post('/api/register', async (req, res) => {
 
   usersDB.run('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err) => {
     if (err) {
-      // Send an error response and return to prevent further execution
       return res.status(400).json({ error: 'Username already taken or invalid input' });
     }
 
-    // Send a success response
     res.json({ message: 'Registration successful' });
   });
 });
@@ -367,51 +355,55 @@ app.post('/api/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
 
-    req.session.user = { ...user, password: undefined };
-    res.json({ message: 'Login successful' });
-  });
-});
-
-app.post('/api/logout', (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ error: 'Could not log out, please try again' });
-    }
-    res.json({ message: 'Logout successful' });
+    res.json({ message: 'Login successful', user: { ...user, password: undefined } });
   });
 });
 
 app.get('/api/user/profile', (req, res) => {
-  if (req.session.user) {
-    res.json(req.session.user);
-  } else {
-    res.status(401).json({ error: 'Not authenticated' });
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: 'Not authenticated' });
   }
+
+  usersDB.get('SELECT * FROM users WHERE id = ?', [userId], (err, user) => {
+    if (err) {
+      console.error('Error fetching user profile:', err.message);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  });
 });
 
 app.put('/api/user/profile', (req, res) => {
-  if (!req.session.user) {
+  const userId = req.query.userId;
+
+  if (!userId) {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
   const updatedProfile = req.body;
 
   usersDB.run(
-    'UPDATE users SET firstName = ?, lastName = ?, address = ?, about = ? WHERE username = ?',
-    [updatedProfile.firstName, updatedProfile.lastName, updatedProfile.address, updatedProfile.about, req.session.user.username],
+    'UPDATE users SET firstName = ?, lastName = ?, address = ?, about = ? WHERE id = ?',
+    [updatedProfile.firstName, updatedProfile.lastName, updatedProfile.address, updatedProfile.about, userId],
     (err) => {
       if (err) {
         console.error('Error updating user profile in the database:', err.message);
         return res.status(500).json({ error: 'Internal Server Error' });
       }
 
-      usersDB.get('SELECT * FROM users WHERE username = ?', [req.session.user.username], (err, row) => {
+      usersDB.get('SELECT * FROM users WHERE id = ?', [userId], (err, row) => {
         if (err) {
           console.error('Error fetching updated user profile:', err.message);
           return res.status(500).json({ error: 'Internal Server Error' });
         }
 
-        req.session.user = row;
         res.json(row);
       });
     },
@@ -419,11 +411,11 @@ app.put('/api/user/profile', (req, res) => {
 });
 
 app.post('/api/cats', (req, res) => {
-  const { nimi, laji, city, omistaja, lelu, kuva, available_from, available_until } = req.body;
+  const { name, breed, city, owner, toy, image, available_from, available_until, price } = req.body;
 
   catsDB.run(
-    'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, price],
+    'INSERT INTO cats (name, breed, city, owner, toy, image, available_from, available_until, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [name, breed, city, owner, toy, image, available_from, available_until, price],
     (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -435,8 +427,7 @@ app.post('/api/cats', (req, res) => {
 });
 
 app.get('/api/cats', async (req, res) => {
-  const { city, startDate, endDate } = req.query;
-  const userId = req.session.user?.id;
+  const { city, startDate, endDate, userId } = req.query;
 
   try {
     let catsQuery;
@@ -445,7 +436,7 @@ app.get('/api/cats', async (req, res) => {
     let likedCatsRows;
 
     if (!city) {
-      catsQuery = 'SELECT * FROM cats';
+      catsQuery = 'SELECT * FROM cats ORDER BY id DESC';
       likedCatsQuery = 'SELECT catId FROM likedCats WHERE userId = ?';
 
       catsRows = await queryDatabase(catsDB, catsQuery);
@@ -504,11 +495,11 @@ app.get('/api/cats/:id', (req, res) => {
 
 app.put('/api/cats/:id', (req, res) => {
   const { id } = req.params;
-  const { nimi, laji, city, omistaja, lelu, kuva, available_from, available_until } = req.body;
+  const { name, breed, city, owner, toy, image, available_from, available_until, price } = req.body;
 
   catsDB.run(
-    'UPDATE cats SET nimi = ?, laji = ?, city = ?, omistaja = ?, lelu = ?, kuva = ?, available_from = ?, available_until = ? price = ? WHERE id = ?',
-    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, price, id],
+    'UPDATE cats SET name = ?, breed = ?, city = ?, owner = ?, toy = ?, image = ?, available_from = ?, available_until = ?, price = ? WHERE id = ?',
+    [name, breed, city, owner, toy, image, available_from, available_until, price, id],
     (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -533,7 +524,7 @@ app.delete('/api/cats/:id', (req, res) => {
 
 app.put('/api/cats/like/:id', async (req, res) => {
   const catId = req.params.id;
-  const userId = req.session.user?.id || 1;
+  const userId = req.query.userId;
 
   const queryCheckLike = 'SELECT * FROM likedCats WHERE catId = ? AND userId = ?';
   const queryInsertLike = 'INSERT INTO likedCats (catId, userId) VALUES (?, ?)';
@@ -583,7 +574,7 @@ app.put('/api/cats/like/:id', async (req, res) => {
 });
 
 app.get('/api/user/liked-cats', (req, res) => {
-  const userId = req.session.user.id;
+  const userId = req.query.userId;
 
   try {
     const catsQuery = 'SELECT * FROM cats';
@@ -613,24 +604,12 @@ app.get('/api/user/liked-cats', (req, res) => {
   }
 });
 
-app.get('/api/allcats', (req, res) => {
-  const query = 'SELECT * FROM cats';
-
-  catsDB.all(query, [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json(rows);
-  });
-});
-
 app.post('/api/rent-cat', (req, res) => {
-  const { catId, usersName, userEmail, rentStartDate, rentEndDate } = req.body;
+  const { catId, usersName, userEmail, rentStartDate, rentEndDate, userId } = req.body;
 
-  const sql = `INSERT INTO rentals (catId, usersName, userEmail, rentStartDate, rentEndDate) VALUES (?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO rentals (catId, userId, usersName, userEmail, rentStartDate, rentEndDate) VALUES (?, ?, ?, ?, ?, ?)`;
 
-  rentDB.run(sql, [catId, usersName, userEmail, rentStartDate, rentEndDate], function (err) {
+  rentDB.run(sql, [catId, userId, usersName, userEmail, rentStartDate, rentEndDate], function (err) {
     if (err) {
       console.error('Error inserting rental data:', err.message);
       res.status(500).json({ error: 'Internal server error' });
@@ -642,7 +621,7 @@ app.post('/api/rent-cat', (req, res) => {
 });
 
 app.get('/api/rentals', (req, res) => {
-  const userId = req.session.user.id;
+  const userId = req.query.userId;
 
   try {
     const rentalsQuery = 'SELECT * FROM rentals WHERE userId = ?';
@@ -652,8 +631,6 @@ app.get('/api/rentals', (req, res) => {
         res.status(500).json({ error: rentalsErr.message });
         return;
       }
-
-      res.json(rentalsRows);
 
       if (rentalsRows.length === 0) {
         return res.json([]);

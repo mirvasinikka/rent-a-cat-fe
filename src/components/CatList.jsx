@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import { Box, CircularProgress, Grid, Pagination } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import CatSearch from './CatSearch';
 import CatCard from './CatCard';
+import { useAuth } from './AuthContext';
 
 function CatList() {
   const [cats, setCats] = useState([]);
@@ -12,6 +13,7 @@ function CatList() {
   const [catsPerPage] = useState(12);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const location = useLocation();
   const indexOfLastCat = currentPage * catsPerPage;
@@ -59,7 +61,7 @@ function CatList() {
 
   const handleLikes = async (catId) => {
     try {
-      const response = await fetch(`/api/cats/like/${catId}`, {
+      const response = await fetch(`/api/cats/like/${catId}?userId=${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
