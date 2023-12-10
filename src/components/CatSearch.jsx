@@ -51,7 +51,7 @@ function CatSearch({ compact = false, sx }) {
     if (startDate && endDate == null) {
       setOpenEndDatePicker(true);
     }
-  }, [city, startDate]);
+  }, [city, endDate, startDate]);
 
   const minDate = new Date();
 

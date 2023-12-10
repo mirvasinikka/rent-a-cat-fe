@@ -2,8 +2,11 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import { Alert, Box, Button, CircularProgress, Grid, Snackbar, TextField, TextareaAutosize } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 function UserProfile() {
+  const { user } = useAuth();
+
   const [profile, setProfile] = useState({
     firstName: '',
     lastName: '',
@@ -18,6 +21,21 @@ function UserProfile() {
 
   const [isLoading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const response = await fetch(`/api/user/profile?userId=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(data);
+        setLoading(false);
+      } else {
+        console.error('Failed to fetch user profile');
+      }
+    };
+
+    fetchUserProfile();
+  }, [user.id]);
+
   const handleProfileChange = (event) => {
     const { name, value } = event.target;
     setProfile((prevName) => ({
@@ -28,7 +46,7 @@ function UserProfile() {
 
   const handleSaveProfile = async () => {
     try {
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch(`/api/user/profile?userId=${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -61,7 +79,7 @@ function UserProfile() {
     }
   };
 
-  const handleCloseSnackbar = (event, reason) => {
+  const handleCloseSnackbar = (_, reason) => {
     if (reason === 'clickaway') {
       return;
     }
@@ -71,21 +89,6 @@ function UserProfile() {
       open: false,
     }));
   };
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data);
-        setLoading(false);
-      } else {
-        console.error('Failed to fetch user profile');
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
 
   if (isLoading) {
     return <CircularProgress />;

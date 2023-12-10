@@ -8,40 +8,26 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const loggedIn = !!localStorage.getItem('user');
     setIsAuthenticated(loggedIn);
 
-    // Fetch user profile
-    const fetchUserProfile = async () => {
-      try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data);
-        } else {
-          console.error('Failed to fetch user profile');
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (loggedIn) {
-      fetchUserProfile();
-    } else {
+      setUser(JSON.parse(localStorage.getItem('user')));
       setIsLoading(false);
     }
   }, []);
 
-  const login = () => {
-    localStorage.setItem('isLoggedIn', 'true');
+  const login = (user) => {
+    setUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
     setIsAuthenticated(true);
+    setIsLoading(false);
   };
 
   const logout = async () => {
-    localStorage.setItem('isLoggedIn', 'false');
     setIsAuthenticated(false);
     setUser(null);
+    localStorage.removeItem('user');
 
     try {
       await fetch('/api/user/logout', {

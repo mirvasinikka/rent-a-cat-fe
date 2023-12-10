@@ -20,6 +20,7 @@ import fi from 'date-fns/locale/fi';
 import UserProfile from './components/UserProfile';
 import RequireAuth from './components/RequireAuth';
 import RentList from './components/RentList';
+import CatManage from './components/CatManage';
 
 const theme = createTheme({
   palette: {
@@ -74,7 +75,7 @@ const router = createBrowserRouter([
             element: <LikedCats />,
           },
           {
-            path: 'add',
+            path: 'add-cat',
             element: <CatForm />,
           },
           {
@@ -82,7 +83,7 @@ const router = createBrowserRouter([
             element: <RentList />,
           },
           {
-            path: 'edit/:id',
+            path: 'edit-cat/:id',
             element: <CatForm />,
           },
           {
@@ -90,8 +91,8 @@ const router = createBrowserRouter([
             element: <UserProfile />,
           },
           {
-            path: 'rentals',
-            element: <RentList />,
+            path: '/manage',
+            element: <CatManage />,
           },
         ],
       },

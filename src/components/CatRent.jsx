@@ -1,10 +1,9 @@
-import { Alert, Box, Button, Divider, Snackbar, Typography } from '@mui/material';
+import { Alert, Box, Button, Divider, Typography } from '@mui/material';
 import { useEffect, useState, useMemo } from 'react';
 import { DatePicker } from '@mui/x-date-pickers';
 import { useAuth } from './AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Paper from '@mui/material/Paper';
-
 
 function CatRent({ price, id }) {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -56,7 +55,15 @@ function CatRent({ price, id }) {
       const response = await fetch('/api/rent-cat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ catId: id, userId: user.id, usersName: user.userName, userEmail: user.email, rentStartDate, rentEndDate }),
+        body: JSON.stringify({
+          catId: id,
+          userId: user.id,
+          usersName: user.userName,
+          userEmail: user.email,
+          rentStartDate: rentStartDate.toISOString().split('T')[0],
+          rentEndDate: rentEndDate.toISOString().split('T')[0],
+          price,
+        }),
       });
 
       if (response.ok) {
