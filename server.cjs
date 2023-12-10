@@ -103,9 +103,14 @@ const getRandomFutureDate = (startDate) => {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0];
 };
 
+const getRandomNumberBetween = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
 for (let i = 0; i < 200; i++) {
   const availableFrom = getCurrentDate();
   const availableUntil = getRandomFutureDate(availableFrom);
+  const randomPrice = getRandomNumberBetween(5, 35);
 
   const randomNameIndex = Math.floor(Math.random() * catNames.length);
   const randomBreedIndex = Math.floor(Math.random() * catBreeds.length);
@@ -122,6 +127,7 @@ for (let i = 0; i < 200; i++) {
     likes: 0,
     available_from: availableFrom,
     available_until: availableUntil,
+    price: randomPrice,
   });
 }
 
@@ -131,16 +137,19 @@ function insertCatMockData() {
       console.error('Error checking cats count:', err.message);
     } else if (row.count === 0) {
       const insertStmt = catsDB.prepare(
-        'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, likes, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, likes, available_from, available_until, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       );
 
       mockCatData.forEach((cat) => {
         const likes = cat.likes ? 1 : 0;
-        insertStmt.run([cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, likes, cat.available_from, cat.available_until], (err) => {
-          if (err) {
-            console.error('Error inserting mock data:', err.message);
-          }
-        });
+        insertStmt.run(
+          [cat.nimi, cat.laji, cat.city, cat.omistaja, cat.lelu, cat.kuva, likes, cat.available_from, cat.available_until, cat.price],
+          (err) => {
+            if (err) {
+              console.error('Error inserting mock data:', err.message);
+            }
+          },
+        );
       });
 
       insertStmt.finalize();
@@ -254,7 +263,8 @@ catsDB.run(
     kuva TEXT,
     likes INTEGER DEFAULT 0,
     available_from DATE,
-    available_until DATE
+    available_until DATE, 
+    price INTEGER 
   )
 `,
   (err) => {
@@ -297,6 +307,7 @@ rentDB.run(
     userEmail TEXT,
     rentStartDate TEXT,
     rentEndDate TEXT,
+    price INTEGER,
     FOREIGN KEY (catId) REFERENCES cats(id),
     FOREIGN KEY (usersName) REFERENCES users(userName)
   )
@@ -410,8 +421,8 @@ app.post('/api/cats', (req, res) => {
   const { nimi, laji, city, omistaja, lelu, kuva, available_from, available_until } = req.body;
 
   catsDB.run(
-    'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, available_from, available_until) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until],
+    'INSERT INTO cats (nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, price],
     (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -495,8 +506,8 @@ app.put('/api/cats/:id', (req, res) => {
   const { nimi, laji, city, omistaja, lelu, kuva, available_from, available_until } = req.body;
 
   catsDB.run(
-    'UPDATE cats SET nimi = ?, laji = ?, city = ?, omistaja = ?, lelu = ?, kuva = ?, available_from = ?, available_until = ? WHERE id = ?',
-    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, id],
+    'UPDATE cats SET nimi = ?, laji = ?, city = ?, omistaja = ?, lelu = ?, kuva = ?, available_from = ?, available_until = ? price = ? WHERE id = ?',
+    [nimi, laji, city, omistaja, lelu, kuva, available_from, available_until, price, id],
     (err) => {
       if (err) {
         res.status(400).json({ error: err.message });
@@ -613,6 +624,7 @@ app.get('/api/allcats', (req, res) => {
   });
 });
 
+// is this needed anymore?!
 app.post('/api/rent-cat', (req, res) => {
   const { catId, usersName, userEmail, rentStartDate, rentEndDate } = req.body;
 

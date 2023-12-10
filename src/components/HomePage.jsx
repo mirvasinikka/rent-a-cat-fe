@@ -17,7 +17,7 @@ const HomePage = () => {
     <Box sx={backgroundStyle}>
       <Container sx={{ pt: 10 }}>
         <Box sx={{ bgcolor: color, boxShadow: 3, borderRadius: '8px', overflow: 'hidden', width: 'auto', mx: 'auto', pb: 3, ml: 40, mr: 40 }}>
-          <Typography variant="h4" sx={{ marginTop: 4, marginBottom: 2, textAlign: 'center' }}>
+          <Typography color="secondary" variant="h4" sx={{ marginTop: 4, marginBottom: 2, textAlign: 'center' }}>
             Rent a Cat
           </Typography>
 
