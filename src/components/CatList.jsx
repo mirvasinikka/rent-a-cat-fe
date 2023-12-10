@@ -1,41 +1,32 @@
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CardMedia,
-  Grid,
-  IconButton,
-  Typography,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  CircularProgress,
-} from '@mui/material';
+import { Box, Button, Grid, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress } from '@mui/material';
 import Pagination from '@mui/material/Pagination';
-import InfoIcon from '@mui/icons-material/Info';
-import FavoriteBorderOutlinedIcon from '@mui/icons-material/FavoriteBorderOutlined';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useAuth } from './AuthContext';
+
+import CatCard from './CatCard';
 
 function CatList() {
   const [cats, setCats] = useState([]);
-  const { isAuthenticated } = useAuth();
   const [openDialog, setOpenDialog] = useState(false);
-  const [catToDelete, setCatToDelete] = useState(null);
   const location = useLocation();
   const [currentPage, setCurrentPage] = useState(1);
   const [catsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
   const [isLoading, setLoading] = useState(true);
+
+  const deleteCat = async () => {
+    try {
+      const response = await fetch(`/api/cats/${catToDelete}`, { method: 'DELETE' });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Failed to delete cat:', error);
+    }
+  };
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -69,50 +60,12 @@ function CatList() {
     setTotalPages(Math.ceil(cats.length / catsPerPage));
   }, [location.search, cats.length, catsPerPage]);
 
-  const handleLikes = async (catId) => {
-    const likedCat = cats.find((cat) => cat.id === catId);
-    if (likedCat) {
-      try {
-        const response = await fetch(`/api/cats/like/${catId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ liked: !likedCat.liked }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        setCats((prevCats) => prevCats.map((cat) => (cat.id === catId ? { ...cat, liked: !cat.liked } : cat)));
-      } catch (error) {
-        console.error('Failed to update like status:', error);
-      }
-    }
-  };
-
-  const handleOpenDialog = (catId) => {
-    setCatToDelete(catId);
-    setOpenDialog(true);
-  };
+  if (isLoading) {
+    return <CircularProgress />;
+  }
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-  };
-
-  const deleteCat = async () => {
-    try {
-      const response = await fetch(`/api/cats/${catToDelete}`, { method: 'DELETE' });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      setCats((prevCats) => prevCats.filter((cat) => cat.id !== catToDelete));
-      handleCloseDialog();
-    } catch (error) {
-      console.error('Failed to delete cat:', error);
-    }
   };
 
   const handlePageChange = (event, value) => {
@@ -122,48 +75,43 @@ function CatList() {
   const indexOfLastCat = currentPage * catsPerPage;
   const indexOfFirstCat = indexOfLastCat - catsPerPage;
   const currentCats = cats.slice(indexOfFirstCat, indexOfLastCat);
-  if (isLoading) {
-    return <CircularProgress />;
-  }
+
+  const handleLikes = async (catId) => {
+    try {
+      const response = await fetch(`/api/cats/like/${catId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      setCats((prevCats) => prevCats.map((cat) => (cat.id === catId ? { ...cat, likes: !cat.likes } : cat)));
+    } catch (error) {
+      console.error('Failed to update like status:', error);
+    }
+  };
 
   if (cats.length === 0) {
-    return <p>Kissoja ei ole</p>;
+    return (
+      <div>
+        <p>Kissoja ei ole</p>
+      </div>
+    );
   }
 
   return (
-    <Box sx={{ marginTop: 3 }}>
-      <Grid container spacing={{ xs: 2, md: 5 }} columns={{ xs: 4, sm: 8, md: 18 }}>
+    <Box sx={{ marginTop: 3, width: '100%', padding: 2 }}>
+      <Grid container spacing={3}>
         {currentCats.map((cat, index) => (
-          <Grid item xs={2} sm={4} md={4} key={index}>
-            <Card sx={{ maxWidth: 350 }}>
-              <CardContent>
-                <CardMedia sx={{ height: 300, marginBottom: 2 }} image={cat.kuva} title={'Cat name ' + cat.nimi} />
-                <Typography gutterBottom variant="h5" component="div">
-                  {cat.nimi}
-                </Typography>
-                <Typography variant="h6">{cat.city}</Typography>
-              </CardContent>
-              <CardActions>
-                <Button component={Link} to={'/info/' + cat.id}>
-                  <InfoIcon color="primary" />
-                </Button>
-                <IconButton onClick={() => handleLikes(cat.id)}>{cat.liked ? <FavoriteIcon /> : <FavoriteBorderOutlinedIcon />}</IconButton>
-                {isAuthenticated && (
-                  <>
-                    <Button component={Link} to={'/edit/' + cat.id}>
-                      <EditIcon color="primary" />
-                    </Button>
-                    <Button onClick={() => handleOpenDialog(cat.id)}>
-                      <DeleteIcon color="error" />
-                    </Button>
-                  </>
-                )}
-              </CardActions>
-            </Card>
+          <Grid item key={index} xs={6} sm={6} md={4} lg={3}>
+            <CatCard cat={cat} handleLikes={handleLikes} />
           </Grid>
         ))}
       </Grid>
-
       <Dialog open={openDialog} onClose={handleCloseDialog} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
         <DialogTitle id="alert-dialog-title">{'Confirm Delete'}</DialogTitle>
         <DialogContent>
@@ -177,7 +125,7 @@ function CatList() {
         </DialogActions>
       </Dialog>
       <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 3, marginBottom: 10 }}>
-        <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} />
+        <Pagination count={totalPages} page={currentPage} onChange={handlePageChange} size="large" color="primary" />
       </Box>
     </Box>
   );
