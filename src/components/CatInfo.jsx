@@ -73,9 +73,9 @@ function CatInfo() {
     <Grid container spacing={2} sx={{ marginTop: 2, padding: 3 }}>
       <Grid item xs={12} md={6}>
         <Box sx={{ img: { margin: 2, width: '100%', maxWidth: 500, maxHeight: 600, marginLeft: 5 } }}>
-          <img src={cat.image} alt={cat.nimi} style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
+          <img src={cat.image} alt={cat.name} style={{ width: '100%', height: 'auto', borderRadius: '8px' }} />
           <Box sx={{ display: 'flex', gap: 1, marginTop: 2, marginBottom: 2, marginLeft: 5 }}>
-            <Typography variant="h3">{cat.nimi}</Typography>
+            <Typography variant="h3">{cat.name}</Typography>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginLeft: 5 }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -84,15 +84,15 @@ function CatInfo() {
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <PetsIcon />
-              <Typography variant="h6">{cat.laji}</Typography>
+              <Typography variant="h6">{cat.breed}</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <PersonIcon />
-              <Typography variant="h6">{cat.omistaja}</Typography>
+              <Typography variant="h6">{cat.owner}</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <SportsTennisIcon />
-              <Typography variant="h6">{cat.lelu}</Typography>
+              <Typography variant="h6">{cat.toy}</Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <SavingsIcon />
