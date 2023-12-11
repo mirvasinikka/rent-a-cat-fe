@@ -83,7 +83,7 @@ function CatCard({ cat, handleLikes, compact = false }) {
                 {cat.city}
               </Typography>
             </Typography>
-            <Box sx={{ backgroundColor: '#76bbc2', padding: 1, borderRadius: 4, marginRight: 2 }}>
+            <Box sx={{ backgroundColor: '#76bbc2', padding: 1, borderRadius: 4, marginRight: 2, textAlign: 'center' }}>
               <Typography variant="h5" sx={{ color: 'white' }}>
                 {cat.price}
               </Typography>

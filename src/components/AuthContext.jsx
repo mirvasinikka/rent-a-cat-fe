@@ -30,11 +30,15 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
 
     try {
-      await fetch('/api/user/logout', {
+      const response = await fetch('/api/logout', {
         method: 'POST',
       });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
     } catch (error) {
-      console.error('Failed to logout', error);
+      console.error('Logout failed:', error);
     }
   };
 

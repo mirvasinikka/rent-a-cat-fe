@@ -48,32 +48,32 @@ function CatRent({ price, id }) {
     event.preventDefault();
 
     if (!isAuthenticated) {
-      navigate('/login', { state: { from: location } });
-    }
+      navigate('/login');
+    } else {
+      try {
+        const response = await fetch('/api/rent-cat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            catId: id,
+            userId: user.id,
+            usersName: user.userName,
+            userEmail: user.email,
+            rentStartDate: rentStartDate.toISOString().split('T')[0],
+            rentEndDate: rentEndDate.toISOString().split('T')[0],
+            price,
+          }),
+        });
 
-    try {
-      const response = await fetch('/api/rent-cat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          catId: id,
-          userId: user.id,
-          usersName: user.userName,
-          userEmail: user.email,
-          rentStartDate: rentStartDate.toISOString().split('T')[0],
-          rentEndDate: rentEndDate.toISOString().split('T')[0],
-          price,
-        }),
-      });
-
-      if (response.ok) {
-        setFormSubmitted(true);
-        setTimeout(() => navigate('/rentals'), 3000);
-      } else {
-        throw new Error('Failed to submit form');
+        if (response.ok) {
+          setFormSubmitted(true);
+          setTimeout(() => navigate('/rentals'), 3000);
+        } else {
+          throw new Error('Failed to submit form');
+        }
+      } catch (error) {
+        console.error('Error:', error);
       }
-    } catch (error) {
-      console.error('Error:', error);
     }
   };
 

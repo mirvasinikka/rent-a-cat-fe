@@ -12,7 +12,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { useAuth } from './AuthContext';
 
 function UserMenu() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
 
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ function UserMenu() {
   };
 
   const handleLogout = async () => {
-    logout();
+    await logout();
     handleClose();
   };
 
@@ -39,7 +39,11 @@ function UserMenu() {
     <>
       <IconButton onClick={handleMenu}>
         <StyledBadge overlap="circular" anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }} variant="dot">
-          <Avatar alt={user.username} src={user.avatarUrl} sx={{ width: 50, height: 50 }} />
+          {isLoading ? (
+            <Avatar alt={'loading...'} sx={{ width: 50, height: 50 }} />
+          ) : (
+            <Avatar alt={user?.username} src={user?.avatarUrl} sx={{ width: 50, height: 50 }} />
+          )}
         </StyledBadge>
       </IconButton>
       <Menu id="menu-appbar" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} sx={{ marginTop: 1 }}>
@@ -57,7 +61,7 @@ function UserMenu() {
           <ListItemText sx={{ paddingLeft: 2, paddingRight: 2 }}>Likes</ListItemText>
         </MenuItem>
         <Divider />
-        {user.role === 'admin' && (
+        {user?.role === 'admin' && (
           <MenuItem onClick={() => handlePath('/manage')} sx={{ padding: 2 }}>
             <ListItemIcon>
               <PetsIcon sx={{ marginRight: 1 }} />
