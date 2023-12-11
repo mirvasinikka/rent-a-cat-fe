@@ -77,10 +77,9 @@ function CatForm() {
     }
   };
   const handleSubmit = async () => {
-    // Format date fields
     const formattedCat = {
       ...cat,
-      image: `https://source.unsplash.com/featured/?cat,${cat.id}`,
+      image: cat.image ?? `https://source.unsplash.com/featured/?cat,${cat.id}`,
       available_from: cat.available_from ? new Date(cat.available_from).toISOString().split('T')[0] : null,
       available_until: cat.available_until ? new Date(cat.available_until).toISOString().split('T')[0] : null,
     };
