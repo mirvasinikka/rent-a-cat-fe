@@ -20,6 +20,25 @@ function CatAppBar() {
             onClick={() => navigate('/')}
             sx={{
               mr: 2,
+              display: { xs: 'flex', md: 'none' }, // Display on small screens, hide on medium and larger screens
+              fontFamily: 'monospace',
+              fontWeight: 700,
+              letterSpacing: '.3rem',
+              color: 'inherit',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <PetsIcon fontSize="large" sx={{ marginRight: 2 }} />
+            RENT A CAT
+          </Typography>
+
+          <Typography
+            variant="h5"
+            noWrap
+            onClick={() => navigate('/')}
+            sx={{
+              mr: 2,
               display: { xs: 'none', md: 'flex' },
               fontFamily: 'monospace',
               fontWeight: 700,
@@ -48,4 +67,5 @@ function CatAppBar() {
     </Box>
   );
 }
+
 export default CatAppBar;
