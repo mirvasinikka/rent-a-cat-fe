@@ -312,18 +312,6 @@ rentDB.run(
   },
 );
 
-app.get('/api/data', (req, res) => {
-  const query = 'SELECT * FROM likedCats';
-
-  likedCatsDB.all(query, [], (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json(rows);
-  });
-});
-
 app.post('/api/register', async (req, res) => {
   const { username, password, email, confirmPassword } = req.body;
 
@@ -451,7 +439,6 @@ app.get('/api/cats', async (req, res) => {
 
     const likedCatsIds = likedCatsRows.map((row) => row.catId);
 
-    // Combine the results
     const combinedRows = catsRows.map((cat) => ({
       ...cat,
       likes: likedCatsIds.includes(cat.id) ? 1 : 0,
